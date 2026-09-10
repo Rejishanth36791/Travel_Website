@@ -24,6 +24,10 @@
   }
 }
 
+.font-script {
+  font-family: 'Caveat', cursive, sans-serif;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
