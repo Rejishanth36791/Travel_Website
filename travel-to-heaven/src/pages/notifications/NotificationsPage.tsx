@@ -12,6 +12,7 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { useTravel } from '@/context/TravelContext';
 import { useAuth } from '@/hooks/useAuth';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 const NOTIFICATION_ICONS: Record<NotificationType, React.ElementType> = {
   NEW_FOLLOWER: UserPlus,
@@ -420,25 +421,11 @@ export const SettingsPage: React.FC = () => {
 
           {activeTab === 'appearance' && (
             <>
-              <h2 className="text-lg font-bold text-slate-900">Appearance</h2>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Theme</label>
-                  <div className="flex gap-3">
-                    {['Light', 'Dark', 'System'].map((theme) => (
-                      <button
-                        key={theme}
-                        className={cn(
-                          'px-5 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer',
-                          theme === 'Light'
-                            ? 'bg-sky-600 text-white shadow-md'
-                            : 'bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-400'
-                        )}
-                      >
-                        {theme}
-                      </button>
-                    ))}
-                  </div>
+              <h2 className="text-lg font-bold text-slate-900">Appearance Settings</h2>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Interface Theme</label>
+                  <ThemeToggle variant="pill" size="md" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Language</label>

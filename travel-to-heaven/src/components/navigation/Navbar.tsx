@@ -22,6 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTravel } from '@/context/TravelContext';
 import { Avatar } from '@/components/common/Avatar';
 import { Button } from '@/components/common/Button';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -148,6 +149,9 @@ export const Navbar: React.FC = () => {
                   )}
                 </Link>
 
+                {/* Light/Dark Theme Switcher */}
+                <ThemeToggle variant="button" size="md" />
+
                 {/* User Dropdown */}
                 <div className="relative ml-1">
                   <button
@@ -159,7 +163,7 @@ export const Navbar: React.FC = () => {
 
                   {isProfileMenuOpen && (
                     <div
-                      className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 animate-scale-in z-50"
+                      className="absolute right-0 mt-2 w-60 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 animate-scale-in z-50"
                       onClick={() => setIsProfileMenuOpen(false)}
                     >
                       <div className="px-4 py-2 border-b border-slate-100">
@@ -270,12 +274,19 @@ export const Navbar: React.FC = () => {
           <div className="border-t border-slate-100 pt-3">
             {isAuthenticated ? (
               <div className="space-y-2">
-                <div className="flex items-center gap-3 px-2 py-2">
-                  <Avatar name={user?.name || 'User'} src={user?.avatarUrl} size="md" />
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">{user?.name}</p>
-                    <p className="text-xs text-slate-500">{user?.email}</p>
+                <div className="flex items-center justify-between px-2 py-2">
+                  <div className="flex items-center gap-3">
+                    <Avatar name={user?.name || 'User'} src={user?.avatarUrl} size="md" />
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{user?.name}</p>
+                      <p className="text-xs text-slate-500">{user?.email}</p>
+                    </div>
                   </div>
+                </div>
+
+                <div className="px-2 py-1">
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Theme Mode</div>
+                  <ThemeToggle variant="pill" className="w-full justify-between" />
                 </div>
 
                 <Link
