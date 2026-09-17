@@ -4,15 +4,16 @@
 @layer base {
   :root {
     --color-sky-primary: #0284c7;
-    --color-emerald-accent: #10b981;
+    --color-emerald-accent: #14b8a6;
+    --color-mint-neon: #2dd4bf;
     --color-amber-gold: #f59e0b;
-    --color-midnight: #0f172a;
+    --color-midnight: #071318;
     --bg-page: #f8fafc;
     --text-page: #0f172a;
   }
 
   .dark {
-    --bg-page: #090d16;
+    --bg-page: #071318;
     --text-page: #f8fafc;
   }
 
@@ -36,9 +37,14 @@
   font-family: 'Caveat', cursive, sans-serif;
 }
 
-/* Dark Mode Global Overrides */
+/* Luxury Dark Mode Global Theme matching Reference Image */
 .dark body {
-  background-color: #090d16;
+  background-color: #071318;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(20, 184, 166, 0.09) 0%, transparent 60%),
+    radial-gradient(circle at 100% 25%, rgba(2, 132, 199, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 0% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+  background-attachment: fixed;
   color: #f8fafc;
 }
 
@@ -46,9 +52,9 @@
 .dark nav,
 .dark aside,
 .dark .bg-white {
-  background-color: #0f172a;
+  background-color: #0c1e28;
   color: #f8fafc;
-  border-color: #1e293b;
+  border-color: #173240;
 }
 
 .dark .text-slate-900 {
@@ -67,18 +73,18 @@
 
 .dark .bg-slate-50,
 .dark .bg-slate-100 {
-  background-color: #1e293b;
+  background-color: #122834;
   color: #f8fafc;
 }
 
 .dark .border-slate-200,
 .dark .border-slate-100 {
-  border-color: #334155;
+  border-color: #1a3848;
 }
 
 .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
 .dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #334155;
+  border-color: #1a3848;
 }
 
 /* Custom Scrollbar */
@@ -92,7 +98,7 @@
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #071318;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -101,7 +107,7 @@
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #1a3848;
   border-radius: 4px;
 }
 
@@ -110,5 +116,5 @@
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #2dd4bf;
 }

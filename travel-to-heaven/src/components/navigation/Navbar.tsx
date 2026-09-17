@@ -17,6 +17,7 @@ import {
   X,
   Search,
   PlusCircle,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTravel } from '@/context/TravelContext';
@@ -114,6 +115,14 @@ export const Navbar: React.FC = () => {
 
             {isAuthenticated ? (
               <div className="flex items-center gap-2">
+                {/* Plan Your Trip Button matching reference design */}
+                <Link to="/trips/create">
+                  <button className="hidden lg:flex items-center gap-1.5 px-4 py-2 rounded-full bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                    <span>Plan Your Trip</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </Link>
+
                 {/* Create Story Button */}
                 <Link to="/stories/create">
                   <Button variant="outline" size="sm" leftIcon={<PlusCircle className="w-4 h-4 text-sky-600" />}>
