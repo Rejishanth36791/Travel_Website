@@ -257,8 +257,9 @@ export const BudgetPage: React.FC = () => {
           </form>
         )}
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
-          {displayItems.map((item) => {
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="divide-y divide-slate-100">
+            {displayItems.map((item) => {
             const meta = CATEGORY_META[item.category];
             const Icon = meta.icon;
             const isEditing = editingItemId === item.id;
@@ -341,6 +342,7 @@ export const BudgetPage: React.FC = () => {
               </div>
             );
           })}
+          </div>
         </div>
       </section>
     </div>

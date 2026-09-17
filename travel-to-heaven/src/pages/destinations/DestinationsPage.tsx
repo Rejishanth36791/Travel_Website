@@ -142,7 +142,7 @@ export const DestinationsPage: React.FC = () => {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-2xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all shadow-2xs"
+            className="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-2xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all shadow-2xs"
           />
         </div>
 

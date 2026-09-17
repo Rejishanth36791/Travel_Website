@@ -75,7 +75,8 @@ export const NotificationsPage: React.FC = () => {
         )}
       </header>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="divide-y divide-slate-100">
         {notifications.length === 0 ? (
           <div className="py-16 text-center space-y-2">
             <BellOff className="w-10 h-10 text-slate-300 mx-auto" />
@@ -128,6 +129,7 @@ export const NotificationsPage: React.FC = () => {
             );
           })
         )}
+        </div>
       </div>
     </div>
   );
@@ -265,6 +267,27 @@ export const ProfilePage: React.FC = () => {
   );
 };
 
+const ToggleSwitch: React.FC<{ defaultChecked?: boolean }> = ({ defaultChecked = true }) => {
+  const [checked, setChecked] = useState(defaultChecked);
+  return (
+    <button
+      type="button"
+      onClick={() => setChecked(!checked)}
+      className={cn(
+        'relative inline-flex h-5 w-10 items-center rounded-full transition-colors cursor-pointer',
+        checked ? 'bg-sky-600' : 'bg-slate-300'
+      )}
+    >
+      <span
+        className={cn(
+          'inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-xs',
+          checked ? 'translate-x-5' : 'translate-x-0.5'
+        )}
+      />
+    </button>
+  );
+};
+
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -388,10 +411,7 @@ export const SettingsPage: React.FC = () => {
                       <p className="text-sm font-semibold text-slate-800">{item.label}</p>
                       <p className="text-xs text-slate-400">{item.desc}</p>
                     </div>
-                    <label className="relative inline-flex cursor-pointer">
-                      <input type="checkbox" defaultChecked className="sr-only peer" />
-                      <div className="w-10 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-sky-500/50 rounded-full peer peer-checked:after:translate-x-5 peer-checked:bg-sky-600 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" />
-                    </label>
+                    <ToggleSwitch defaultChecked />
                   </div>
                 ))}
               </div>

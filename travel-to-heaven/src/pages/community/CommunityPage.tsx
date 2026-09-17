@@ -99,7 +99,7 @@ export const CommunityPage: React.FC = () => {
               placeholder="Where are you exploring right now? Ask travel tips or share a route insight..."
               value={newPostText}
               onChange={(e) => setNewPostText(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
             />
             <div className="flex justify-between items-center">
               <span className="text-xs text-slate-400">Markdown formatting supported</span>
