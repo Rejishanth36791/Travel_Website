@@ -5,8 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { setPageTitle } from '@/lib/utils';
 import { Input } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
-import { loginSchema, type LoginInput } from '@/validations/auth.schema';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User } from 'lucide-react';
+import { loginSchema, registerSchema, type LoginInput, type RegisterInput } from '@/validations/auth.schema';
 import { useAuth } from '@/hooks/useAuth';
 import { authService } from '@/services/auth.service';
 
@@ -117,59 +117,29 @@ export const RegisterPage: React.FC = () => {
   }, []);
 
   const {
-    register: registerField,
+    register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: zodResolver(
-      loginSchema.extend({
-        name: loginSchema.shape.email.pipe(
-          // Re-define inline for the register form
-        ),
-      })
-    ).catch(() => undefined) as never, // Fallback — we use the separate registerSchema
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
     defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
   });
 
-  // Use manual validation since the registerSchema with refine has a different shape
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const name = (formData.get('name') as string).trim();
-    const email = (formData.get('email') as string).trim();
-    const password = formData.get('password') as string;
-    const confirmPassword = formData.get('confirmPassword') as string;
-
-    // Manual validation
-    const fieldErrors: Record<string, string> = {};
-    if (name.length < 2) fieldErrors.name = 'Name must be at least 2 characters';
-    if (!email || !/\S+@\S+\.\S+/.test(email)) fieldErrors.email = 'Please enter a valid email address';
-    if (password.length < 6) fieldErrors.password = 'Password must be at least 6 characters';
-    if (password !== confirmPassword) fieldErrors.confirmPassword = 'Passwords do not match';
-
-    if (Object.keys(fieldErrors).length > 0) {
-      setFormErrors(fieldErrors);
-      return;
-    }
-
+  const onSubmit = async (data: RegisterInput) => {
     setApiError(null);
-    setFormErrors({});
-    setIsSubmittingForm(true);
-
     try {
-      const response = await authService.register({ name, email, password });
+      const response = await authService.register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
       login(response.token, response.user);
       navigate('/', { replace: true });
     } catch (err: unknown) {
       const error = err as { message?: string };
       setApiError(error.message || 'Unable to create account. Please try again.');
-    } finally {
-      setIsSubmittingForm(false);
     }
   };
-
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -184,24 +154,24 @@ export const RegisterPage: React.FC = () => {
         </div>
       )}
 
-      <form className="space-y-4" onSubmit={onSubmit} noValidate>
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
         <Input
           label="Full Name"
-          name="name"
           placeholder="John Doe"
-          error={formErrors.name}
+          leftIcon={<User className="w-4 h-4" />}
+          error={errors.name?.message}
+          {...register('name')}
         />
         <Input
           label="Email Address"
-          name="email"
           type="email"
           placeholder="name@example.com"
           leftIcon={<Mail className="w-4 h-4" />}
-          error={formErrors.email}
+          error={errors.email?.message}
+          {...register('email')}
         />
         <Input
           label="Password"
-          name="password"
           type={showPassword ? 'text' : 'password'}
           placeholder="••••••••"
           leftIcon={<Lock className="w-4 h-4" />}
@@ -215,22 +185,23 @@ export const RegisterPage: React.FC = () => {
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           }
-          error={formErrors.password}
+          error={errors.password?.message}
+          {...register('password')}
         />
         <Input
           label="Confirm Password"
-          name="confirmPassword"
           type={showPassword ? 'text' : 'password'}
           placeholder="••••••••"
           leftIcon={<Lock className="w-4 h-4" />}
-          error={formErrors.confirmPassword}
+          error={errors.confirmPassword?.message}
+          {...register('confirmPassword')}
         />
 
         <Button
           type="submit"
           variant="primary"
           className="w-full"
-          isLoading={isSubmittingForm}
+          isLoading={isSubmitting}
           rightIcon={<ArrowRight className="w-4 h-4" />}
         >
           Create Account

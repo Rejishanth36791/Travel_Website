@@ -3,13 +3,16 @@ import { cn } from '@/lib/utils';
 
 export interface AvatarProps {
   src?: string;
+  imageUrl?: string;
   name: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
-export const Avatar: React.FC<AvatarProps> = ({ src, name, size = 'md', className = '' }) => {
+export const Avatar: React.FC<AvatarProps> = ({ src, imageUrl, name, size = 'md', className = '' }) => {
+  const imgSrc = src || imageUrl;
   const sizes = {
+    xs: 'w-6 h-6 text-[10px]',
     sm: 'w-8 h-8 text-xs',
     md: 'w-10 h-10 text-sm',
     lg: 'w-14 h-14 text-base font-semibold',
@@ -25,10 +28,10 @@ export const Avatar: React.FC<AvatarProps> = ({ src, name, size = 'md', classNam
     return str.substring(0, 2).toUpperCase();
   };
 
-  if (src) {
+  if (imgSrc) {
     return (
       <img
-        src={src}
+        src={imgSrc}
         alt={name}
         className={cn('rounded-full object-cover border border-slate-200 shadow-2xs', sizes[size], className)}
         onError={(e) => {
@@ -41,7 +44,7 @@ export const Avatar: React.FC<AvatarProps> = ({ src, name, size = 'md', classNam
   return (
     <div
       className={cn(
-        'rounded-full bg-gradient-to-tr from-sky-600 to-emerald-500 text-white flex items-center justify-center font-medium shadow-2xs uppercase tracking-wider',
+        'rounded-full bg-linear-to-tr from-sky-600 to-emerald-500 text-white flex items-center justify-center font-medium shadow-2xs uppercase tracking-wider',
         sizes[size],
         className
       )}

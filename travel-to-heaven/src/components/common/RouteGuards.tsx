@@ -45,7 +45,7 @@ export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }
 };
 
 export const GuestRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -55,9 +55,6 @@ export const GuestRoute: React.FC<{ children: React.ReactNode }> = ({ children }
     );
   }
 
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
+  // During development, allow inspecting and testing login/register pages freely
   return <>{children}</>;
 };

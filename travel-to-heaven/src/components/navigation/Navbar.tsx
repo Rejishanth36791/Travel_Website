@@ -19,11 +19,13 @@ import {
   PlusCircle,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useTravel } from '@/context/TravelContext';
 import { Avatar } from '@/components/common/Avatar';
 import { Button } from '@/components/common/Button';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { unreadNotificationsCount, favoriteDestinationIds } = useTravel();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,7 +62,7 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-18">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-600 to-emerald-500 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-2xl bg-linear-to-tr from-sky-600 to-emerald-500 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
               <Compass className="w-6 h-6 stroke-[2.2]" />
             </div>
             <div className="flex flex-col">
@@ -121,10 +123,15 @@ export const Navbar: React.FC = () => {
                 {/* Favorites */}
                 <Link
                   to="/favorites"
-                  className="p-2 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors"
+                  className="relative p-2 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors"
                   title="Saved Favorites"
                 >
                   <Heart className="w-5 h-5" />
+                  {favoriteDestinationIds.length > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
+                      {favoriteDestinationIds.length}
+                    </span>
+                  )}
                 </Link>
 
                 {/* Notifications */}
@@ -134,7 +141,11 @@ export const Navbar: React.FC = () => {
                   title="Notifications"
                 >
                   <Bell className="w-5 h-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
+                  {unreadNotificationsCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-sky-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
+                      {unreadNotificationsCount}
+                    </span>
+                  )}
                 </Link>
 
                 {/* User Dropdown */}

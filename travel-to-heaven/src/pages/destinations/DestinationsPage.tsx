@@ -4,7 +4,6 @@ import { setPageTitle } from '@/lib/utils';
 import { Search, SlidersHorizontal, Grid3X3, LayoutList } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import type { Destination, DestinationCategory } from '@/types/destination.types';
-import { homeService } from '@/services/home.service';
 import { DestinationCard, DestinationCardSkeleton } from '@/components/destination/DestinationCard';
 import { Pagination } from '@/components/common/Pagination';
 import { FilterPanel } from '@/components/common/FilterPanel';
@@ -12,15 +11,18 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { cn } from '@/lib/utils';
 
+import { useTravel } from '@/context/TravelContext';
+
 const PAGE_SIZE = 12;
 
 export const DestinationsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { destinations, isDestinationFavorite, toggleFavoriteDestination } = useTravel();
 
   // State
-  const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [allDestinations, setAllDestinations] = useState<Destination[]>(destinations);
+  const [isLoading] = useState(false);
+  const [error] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -35,25 +37,9 @@ export const DestinationsPage: React.FC = () => {
   const debouncedQuery = useDebounce(searchQuery, 350);
 
   useEffect(() => {
-    setPageTitle('All Destinations');
-  }, []);
-
-  // Load destinations (in production this calls the API with params)
-  useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await homeService.getFeaturedDestinations();
-        setAllDestinations(data);
-      } catch {
-        setError('Unable to load destinations. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    load();
-  }, []);
+    setPageTitle('All Destinations — Travel to Heaven');
+    setAllDestinations(destinations);
+  }, [destinations]);
 
   // Update URL params when filters change
   useEffect(() => {
@@ -267,7 +253,11 @@ export const DestinationsPage: React.FC = () => {
                 {paginatedDestinations.map((dest) => (
                   <DestinationCard
                     key={dest.id}
-                    destination={dest}
+                    destination={{
+                      ...dest,
+                      isFavorite: isDestinationFavorite(dest.id),
+                    }}
+                    onToggleFavorite={toggleFavoriteDestination}
                     variant={viewMode === 'list' ? 'horizontal' : 'default'}
                   />
                 ))}

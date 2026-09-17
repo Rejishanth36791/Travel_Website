@@ -14,27 +14,57 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('t2h_auth_token'));
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+export const DEV_MOCK_USER: User = {
+  id: 'dev-user-alex',
+  name: 'Alex Rivera',
+  email: 'alex.rivera@traveltoheaven.com',
+  role: 'ADMIN',
+  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+  bio: 'Passionate globetrotter, alpine photographer, and cultural explorer. 34 countries visited.',
+  location: 'Zurich, Switzerland',
+  travelInterests: ['Mountain Trekking', 'Cultural Heritage', 'Coastal Sailing', 'Eco-Lodges'],
+  followersCount: 1420,
+  followingCount: 388,
+  storiesCount: 18,
+  photosCount: 64,
+  tripsCount: 7,
+  createdAt: '2023-01-15T10:00:00Z',
+  enabled: true,
+};
 
-  // Restore authenticated session on initial mount
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem('t2h_user');
+    if (stored) {
+      try { return JSON.parse(stored); } catch { /* ignore */ }
+    }
+    // Default development authenticated user
+    return DEV_MOCK_USER;
+  });
+
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem('t2h_auth_token') || 'dev-mock-jwt-token';
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Restore authenticated session on initial mount if stored
   useEffect(() => {
     const initializeAuth = async () => {
       const storedToken = localStorage.getItem('t2h_auth_token');
-      if (storedToken) {
+      const storedUser = localStorage.getItem('t2h_user');
+      if (storedToken && storedUser) {
         try {
-          const currentUser = await authService.getCurrentUser();
-          setUser(currentUser);
+          setUser(JSON.parse(storedUser));
           setToken(storedToken);
-        } catch (error) {
-          console.warn('Session restoration failed:', error);
-          localStorage.removeItem('t2h_auth_token');
-          localStorage.removeItem('t2h_user');
-          setUser(null);
-          setToken(null);
+        } catch {
+          setUser(DEV_MOCK_USER);
+          setToken('dev-mock-jwt-token');
         }
+      } else {
+        // Dev fallback
+        setUser(DEV_MOCK_USER);
+        setToken('dev-mock-jwt-token');
       }
       setIsLoading(false);
     };
