@@ -85,7 +85,7 @@ export const CollectionsPage: React.FC = () => {
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Organized Saves</span>
           </div>
           <h1 className="font-serif text-3xl font-extrabold text-slate-900">Travel Collections</h1>
-          <p className="text-slate-500 text-sm">Organize dream trips into themed portfolios</p>
+          <p className="text-slate-500 text-sm">Organize favorite spots into themed portfolios</p>
         </div>
         <Button variant="primary" leftIcon={<PlusCircle className="w-4 h-4" />} onClick={() => setShowModal(true)}>
           New Collection

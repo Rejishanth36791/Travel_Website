@@ -2,10 +2,11 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { setPageTitle } from '@/lib/utils';
 import {
-  Compass, Palmtree, Mountain, Building2, TreePine, Bike,
+  Palmtree, Mountain, Building2, TreePine, Bike,
   Landmark, Theater, PawPrint, UtensilsCrossed, Gem, Wallet,
   HeartHandshake, ArrowUpRight, Sparkles, Heart, Search,
-  Bookmark, MapPin, Star, Plus, Check, X, Layers, Flame
+  Bookmark, MapPin, Star, Plus, Check, X, Layers, Flame,
+  MessageCircle, Grid3X3, LayoutGrid, Send
 } from 'lucide-react';
 import { useTravel } from '@/context/TravelContext';
 import type { Destination, DestinationCategory } from '@/types/destination.types';
@@ -182,6 +183,17 @@ export const DiscoverPage: React.FC = () => {
   const [saveModalDest, setSaveModalDest] = useState<Destination | null>(null);
   const [addedCollectionId, setAddedCollectionId] = useState<string | null>(null);
 
+  // Instagram Explore State
+  const [viewMode, setViewMode] = useState<'explore' | 'pins'>('explore');
+  const [selectedExploreDest, setSelectedExploreDest] = useState<Destination | null>(null);
+  const [exploreLikes, setExploreLikes] = useState<Record<string, number>>({});
+  const [exploreLiked, setExploreLiked] = useState<Record<string, boolean>>({});
+  const [exploreComments, setExploreComments] = useState<Record<string, Array<{ id: string; user: string; text: string; time: string }>>>({});
+  const [modalNewComment, setModalNewComment] = useState('');
+  const [modalHeartAnim, setModalHeartAnim] = useState(false);
+  const [followedUsers, setFollowedUsers] = useState<Record<string, boolean>>({});
+  const [copyFeedback, setCopyFeedback] = useState(false);
+
   useEffect(() => {
     setPageTitle('Discover Visual Travel Inspiration — Travel to Heaven');
   }, []);
@@ -211,6 +223,54 @@ export const DiscoverPage: React.FC = () => {
         setSaveModalDest(null);
       }, 1200);
     }
+  };
+
+  const getLikes = (dest: Destination) => {
+    return exploreLikes[dest.id] ?? (dest.reviewsCount * 16 + 58);
+  };
+
+  const isLiked = (destId: string) => {
+    return exploreLiked[destId] || isDestinationFavorite(destId);
+  };
+
+  const handleToggleLike = (dest: Destination) => {
+    const currentlyLiked = isLiked(dest.id);
+    const currentLikes = getLikes(dest);
+    setExploreLiked((prev) => ({ ...prev, [dest.id]: !currentlyLiked }));
+    setExploreLikes((prev) => ({
+      ...prev,
+      [dest.id]: currentlyLiked ? currentLikes - 1 : currentLikes + 1,
+    }));
+    toggleFavoriteDestination(dest.id);
+  };
+
+  const handleDoubleTapExploreModal = (dest: Destination) => {
+    setModalHeartAnim(true);
+    if (!isLiked(dest.id)) {
+      handleToggleLike(dest);
+    }
+    setTimeout(() => setModalHeartAnim(false), 900);
+  };
+
+  const handleAddModalComment = (destId: string) => {
+    if (!modalNewComment.trim()) return;
+    const newEntry = {
+      id: `c-${Date.now()}`,
+      user: 'alex_rivera',
+      text: modalNewComment.trim(),
+      time: 'Just now',
+    };
+    setExploreComments((prev) => ({
+      ...prev,
+      [destId]: [...(prev[destId] || []), newEntry],
+    }));
+    setModalNewComment('');
+  };
+
+  const handleSharePost = (dest: Destination) => {
+    navigator.clipboard?.writeText(window.location.origin + `/destinations/${dest.id}`);
+    setCopyFeedback(true);
+    setTimeout(() => setCopyFeedback(false), 2000);
   };
 
   return (
@@ -412,35 +472,68 @@ export const DiscoverPage: React.FC = () => {
           </div>
         </section>
 
-        {/* 4. Pinterest Pin Explorer Grid */}
+        {/* 4. Instagram Explore Grid & Visual Pinboard Section */}
         <section className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-rose-50 text-rose-600">
-                <Compass className="w-5 h-5" />
+              <div className="p-2 rounded-xl bg-linear-to-tr from-amber-500 via-rose-500 to-fuchsia-600 text-white shadow-sm">
+                <Grid3X3 className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="font-serif text-2xl font-extrabold text-slate-900 tracking-tight">
-                  Discover Traveler Pins ({filteredPins.length})
+                <h2 className="font-serif text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <span>Explore Travel Feed</span>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+                    {filteredPins.length} Posts
+                  </span>
                 </h2>
-                <p className="text-xs text-slate-500 font-medium">Click heart to favorite, or Save to add to your visual boards</p>
+                <p className="text-xs text-slate-500 font-medium">Browse community travel moments in Instagram Explore layout or Pinterest pinboard</p>
               </div>
             </div>
 
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="text-xs text-rose-600 font-bold hover:underline cursor-pointer"
-              >
-                Clear Search filter
-              </button>
-            )}
+            {/* View Mode Switcher + Clear Search */}
+            <div className="flex items-center gap-3">
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-xs text-rose-600 font-bold hover:underline cursor-pointer mr-2"
+                >
+                  Clear Search
+                </button>
+              )}
+
+              <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200 text-xs font-semibold">
+                <button
+                  onClick={() => setViewMode('explore')}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer',
+                    viewMode === 'explore'
+                      ? 'bg-white text-slate-950 shadow-sm font-bold'
+                      : 'text-slate-500 hover:text-slate-900'
+                  )}
+                >
+                  <Grid3X3 className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Instagram Explore</span>
+                </button>
+                <button
+                  onClick={() => setViewMode('pins')}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer',
+                    viewMode === 'pins'
+                      ? 'bg-white text-slate-950 shadow-sm font-bold'
+                      : 'text-slate-500 hover:text-slate-900'
+                  )}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5 text-sky-500" />
+                  <span>Pinboard</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {filteredPins.length === 0 ? (
             <div className="bg-white rounded-3xl p-12 text-center space-y-3 border border-slate-200">
               <Search className="w-10 h-10 text-slate-300 mx-auto" />
-              <h3 className="text-base font-bold text-slate-900">No pins found for "{searchQuery}"</h3>
+              <h3 className="text-base font-bold text-slate-900">No moments found for "{searchQuery}"</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
                 Try searching for another destination, country, or choosing a different travel mood pill above.
               </p>
@@ -450,6 +543,67 @@ export const DiscoverPage: React.FC = () => {
               >
                 Reset All Filters
               </button>
+            </div>
+          ) : viewMode === 'explore' ? (
+            /* Instagram Explore 3-Column Grid */
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2 sm:gap-4 md:gap-5">
+              {filteredPins.map((dest, idx) => {
+                const liked = isLiked(dest.id);
+                const likes = getLikes(dest);
+                const commentsCount = dest.reviewsCount;
+                const isFeatured = idx % 7 === 0;
+
+                return (
+                  <div
+                    key={dest.id}
+                    onClick={() => setSelectedExploreDest(dest)}
+                    className={cn(
+                      'group relative rounded-2xl overflow-hidden bg-slate-900 cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-300 border border-slate-200/60 aspect-square',
+                      isFeatured && 'md:col-span-2 md:row-span-2'
+                    )}
+                  >
+                    <img
+                      src={dest.coverImageUrl}
+                      alt={dest.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      loading="lazy"
+                    />
+
+                    {/* Gradient bottom shadow */}
+                    <div className="absolute inset-0 bg-linear-to-t from-black/75 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
+
+                    {/* Category pill on top right */}
+                    <div className="absolute top-2.5 right-2.5 z-10">
+                      <span className="px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">
+                        {dest.category}
+                      </span>
+                    </div>
+
+                    {/* Subtle bottom info */}
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5 z-10 text-white">
+                      <h3 className="font-bold text-xs sm:text-sm line-clamp-1 drop-shadow-sm">
+                        {dest.name}
+                      </h3>
+                      <p className="text-[10px] text-slate-200 flex items-center gap-1 font-medium">
+                        <MapPin className="w-3 h-3 text-sky-300" />
+                        <span>{dest.city}, {dest.country}</span>
+                      </p>
+                    </div>
+
+                    {/* Instagram Classic Hover Scrim Overlay */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-6 text-white font-bold text-sm sm:text-base z-20 pointer-events-none">
+                      <div className="flex items-center gap-1.5 drop-shadow-md">
+                        <Heart className={cn('w-5 h-5 sm:w-6 sm:h-6', liked ? 'fill-rose-500 text-rose-500' : 'fill-white text-white')} />
+                        <span>{likes.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 drop-shadow-md">
+                        <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 fill-white text-white" />
+                        <span>{commentsCount}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             /* Pinterest Masonry Card Layout */
@@ -626,6 +780,258 @@ export const DiscoverPage: React.FC = () => {
               >
                 Done
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Instagram Split-Screen Post Viewer Modal */}
+      {selectedExploreDest && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 md:p-6"
+          onClick={() => setSelectedExploreDest(null)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-5xl w-full max-h-[92vh] sm:max-h-[85vh] overflow-hidden shadow-2xl flex flex-col md:flex-row border border-slate-200 animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Left Side: Large Photo with double click heart animation */}
+            <div
+              className="relative md:w-3/5 bg-black flex items-center justify-center overflow-hidden select-none cursor-pointer group/photo min-h-75 md:min-h-137.5"
+              onDoubleClick={() => handleDoubleTapExploreModal(selectedExploreDest)}
+            >
+              <img
+                src={selectedExploreDest.coverImageUrl}
+                alt={selectedExploreDest.name}
+                className="w-full h-full object-cover max-h-[60vh] md:max-h-[85vh]"
+              />
+
+              {/* Centered Pulsing Heart on Double Tap */}
+              {modalHeartAnim && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                  <div className="animate-in zoom-in-50 fade-in duration-200">
+                    <Heart className="w-28 h-28 text-white fill-white drop-shadow-[0_0_35px_rgba(239,68,68,0.9)] animate-pulse" />
+                  </div>
+                </div>
+              )}
+
+              {/* Double tap hint overlay */}
+              <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-[11px] text-white/90 font-medium pointer-events-none flex items-center gap-1 opacity-70 group-hover/photo:opacity-100 transition-opacity">
+                <span>Double tap to like</span>
+              </div>
+            </div>
+
+            {/* Right Side: Instagram Sidebar (Header, Caption, Comments, Actions) */}
+            <div className="md:w-2/5 flex flex-col h-full bg-white max-h-[50vh] md:max-h-[85vh]">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-0.5 rounded-full bg-linear-to-tr from-amber-500 via-rose-500 to-fuchsia-600 shrink-0">
+                    <img
+                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+                      alt="Traveler"
+                      className="w-9 h-9 rounded-full object-cover border-2 border-white"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold text-xs sm:text-sm text-slate-900 truncate">
+                        traveler_{selectedExploreDest.city.toLowerCase().replace(/\s+/g, '_')}
+                      </span>
+                      <span className="text-sky-500 text-[11px]">●</span>
+                      <button
+                        onClick={() => {
+                          const key = selectedExploreDest.id;
+                          setFollowedUsers((prev) => ({ ...prev, [key]: !prev[key] }));
+                        }}
+                        className="text-xs font-bold text-sky-600 hover:text-sky-700 cursor-pointer ml-1"
+                      >
+                        {followedUsers[selectedExploreDest.id] ? 'Following' : 'Follow'}
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-500 flex items-center gap-0.5 truncate">
+                      <MapPin className="w-3 h-3 text-sky-500 shrink-0" />
+                      <span>{selectedExploreDest.city}, {selectedExploreDest.country}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setSelectedExploreDest(null)}
+                  className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable Caption & Comments Stream */}
+              <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
+                {/* Author Caption */}
+                <div className="flex items-start gap-3">
+                  <img
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+                    alt="Traveler"
+                    className="w-7 h-7 rounded-full object-cover mt-0.5 shrink-0"
+                  />
+                  <div className="space-y-1.5 flex-1">
+                    <p className="text-slate-800 leading-relaxed">
+                      <strong className="font-bold text-slate-900 mr-1.5">
+                        traveler_{selectedExploreDest.city.toLowerCase().replace(/\s+/g, '_')}
+                      </strong>
+                      {selectedExploreDest.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 text-sky-600 font-medium">
+                      <span>#{selectedExploreDest.category.toLowerCase()}</span>
+                      <span>#{selectedExploreDest.country.toLowerCase().replace(/\s+/g, '')}</span>
+                      <span>#traveltoheaven</span>
+                      <span>#bucketlist</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider">
+                      Best season: {selectedExploreDest.bestTimeToVisit}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Default Traveler Tips / Comments */}
+                <div className="flex items-start gap-3 pt-2 border-t border-slate-50">
+                  <div className="w-7 h-7 rounded-full bg-teal-100 text-teal-700 font-bold flex items-center justify-center text-[10px] shrink-0">
+                    MT
+                  </div>
+                  <div className="space-y-0.5 flex-1">
+                    <p className="text-slate-800">
+                      <strong className="font-bold text-slate-900 mr-1.5">maya_treks</strong>
+                      The viewpoint here is pure heaven at sunrise! Make sure to arrive before 6 AM.
+                    </p>
+                    <div className="flex items-center gap-3 text-[10px] text-slate-400">
+                      <span>3h</span>
+                      <span>14 likes</span>
+                      <button className="font-bold hover:text-slate-600 cursor-pointer">Reply</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-[10px] shrink-0">
+                    KL
+                  </div>
+                  <div className="space-y-0.5 flex-1">
+                    <p className="text-slate-800">
+                      <strong className="font-bold text-slate-900 mr-1.5">kai_nomad</strong>
+                      Can confirm local transport was super smooth. Highly recommend trying the street food nearby!
+                    </p>
+                    <div className="flex items-center gap-3 text-[10px] text-slate-400">
+                      <span>5h</span>
+                      <span>9 likes</span>
+                      <button className="font-bold hover:text-slate-600 cursor-pointer">Reply</button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dynamically Added Comments */}
+                {(exploreComments[selectedExploreDest.id] || []).map((c) => (
+                  <div key={c.id} className="flex items-start gap-3 animate-in fade-in">
+                    <div className="w-7 h-7 rounded-full bg-sky-100 text-sky-700 font-bold flex items-center justify-center text-[10px] shrink-0">
+                      AR
+                    </div>
+                    <div className="space-y-0.5 flex-1">
+                      <p className="text-slate-800">
+                        <strong className="font-bold text-slate-900 mr-1.5">{c.user}</strong>
+                        {c.text}
+                      </p>
+                      <div className="flex items-center gap-3 text-[10px] text-slate-400">
+                        <span>{c.time}</span>
+                        <button className="font-bold hover:text-slate-600 cursor-pointer">Reply</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Instagram Action Row */}
+              <div className="p-3 border-t border-slate-100 space-y-2 bg-slate-50/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleToggleLike(selectedExploreDest)}
+                      className="p-1 text-slate-700 hover:text-rose-600 transition-colors cursor-pointer"
+                    >
+                      <Heart
+                        className={cn(
+                          'w-6 h-6 transition-transform active:scale-125',
+                          isLiked(selectedExploreDest.id) ? 'text-rose-600 fill-rose-600' : ''
+                        )}
+                      />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const input = document.getElementById('explore-comment-input');
+                        input?.focus();
+                      }}
+                      className="p-1 text-slate-700 hover:text-sky-600 transition-colors cursor-pointer"
+                    >
+                      <MessageCircle className="w-6 h-6" />
+                    </button>
+                    <button
+                      onClick={() => handleSharePost(selectedExploreDest)}
+                      className="p-1 text-slate-700 hover:text-sky-600 transition-colors cursor-pointer relative"
+                    >
+                      <Send className="w-5 h-5" />
+                      {copyFeedback && (
+                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] px-2 py-0.5 rounded-md whitespace-nowrap shadow-md">
+                          Copied Link!
+                        </span>
+                      )}
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setSaveModalDest(selectedExploreDest);
+                    }}
+                    className="p-1 text-slate-700 hover:text-sky-600 transition-colors cursor-pointer"
+                  >
+                    <Bookmark className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="text-xs font-bold text-slate-900">
+                  {getLikes(selectedExploreDest).toLocaleString()} likes
+                </div>
+
+                {/* Direct Link to Full Destination Guide */}
+                <Link
+                  to={`/destinations/${selectedExploreDest.id}`}
+                  className="block text-center py-2 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-xs transition-colors"
+                >
+                  View Full Travel Guide & Advice →
+                </Link>
+
+                {/* Inline Comment Input Box */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleAddModalComment(selectedExploreDest.id);
+                  }}
+                  className="flex items-center gap-2 pt-1"
+                >
+                  <input
+                    id="explore-comment-input"
+                    type="text"
+                    placeholder="Add a comment..."
+                    value={modalNewComment}
+                    onChange={(e) => setModalNewComment(e.target.value)}
+                    className="flex-1 bg-transparent text-xs text-slate-900 placeholder:opacity-50 focus:outline-none py-1"
+                  />
+                  {modalNewComment.trim() && (
+                    <button
+                      type="submit"
+                      className="text-xs font-bold text-sky-600 hover:text-sky-700 cursor-pointer"
+                    >
+                      Post
+                    </button>
+                  )}
+                </form>
+              </div>
             </div>
           </div>
         </div>

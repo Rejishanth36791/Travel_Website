@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, Play, Plane, MapPin, Building, Compass,
-  Calendar, Users, ArrowUpDown, ChevronLeft, ChevronRight,
-  ShieldCheck, Headphones, CalendarCheck, Lock, Star, X
+  ArrowRight, Play, Plane, MapPin, Compass,
+  Calendar, ChevronLeft, ChevronRight,
+  CalendarCheck, Star, X, Lightbulb,
+  Globe, Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -54,24 +55,23 @@ const POPULAR_SPOTS: PopularSpot[] = [
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
 
-  // Booking Card State
-  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'experiences'>('flights');
-  const [fromLocation, setFromLocation] = useState('New York (JFK)');
-  const [toLocation, setToLocation] = useState('Bali, Indonesia');
-  const [dates, setDates] = useState('May 20 – May 30');
-  const [travelers, setTravelers] = useState('2 Adults');
+  // Travel Discovery & Advice Card State
+  const [activeTab, setActiveTab] = useState<'places' | 'advice'>('places');
+  const [destinationQuery, setDestinationQuery] = useState('Kyoto, Japan');
+  const [travelVibe, setTravelVibe] = useState('Cultural');
+  const [travelSeason, setTravelSeason] = useState('Spring');
+  const [adviceTopic, setAdviceTopic] = useState('Best Time to Visit');
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [spotIndex, setSpotIndex] = useState(0);
 
-  const handleSwap = () => {
-    const temp = fromLocation;
-    setFromLocation(toLocation);
-    setToLocation(temp);
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
+  const handleAction = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/destinations?query=${encodeURIComponent(toLocation.split(',')[0])}`);
+    const cleanDest = destinationQuery.split(',')[0].trim();
+    if (activeTab === 'places') {
+      navigate(`/destinations?query=${encodeURIComponent(cleanDest)}`);
+    } else {
+      navigate(`/destinations?query=${encodeURIComponent(cleanDest)}#advice`);
+    }
   };
 
   const handleNextSpot = () => {
@@ -87,14 +87,14 @@ export const HeroSection: React.FC = () => {
       {/* 1. Dramatic Island Landscape Background (Bali / Nusa Penida karst cliffs at sunset) */}
       <div className="absolute inset-0">
         <img
-          src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=2400&q=85"
+          src="https://images.unsplash.com/photo-1541385355340-2ab888752c9b?auto=format&fit=crop&w=2560&q=85"
           alt="Tropical island sea cliffs and turquoise ocean at sunset"
-          className="w-full h-full object-cover object-center scale-102 transition-transform duration-10000"
+          className="w-full h-full object-cover object-center scale-102 transition-transform duration-10000 brightness-100 saturate-110"
         />
         {/* Cinematic Atmospheric Vignettes & Dark Gradient Overlays */}
-        <div className="absolute inset-0 bg-linear-to-r from-slate-950/90 via-slate-950/50 to-slate-950/80" />
-        <div className="absolute inset-0 bg-linear-to-t from-[#071318] via-transparent to-slate-950/70" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(45,212,191,0.15),transparent_60%)]" />
+        <div className="absolute inset-0 bg-linear-to-r from-slate-950/80 via-slate-950/25 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-slate-950/60 via-transparent to-black/25" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(45,212,191,0.12),transparent_60%)]" />
       </div>
 
       {/* Dotted Flight Trajectory Line & Airplane Overlay */}
@@ -135,7 +135,7 @@ export const HeroSection: React.FC = () => {
 
       {/* Main Container Content */}
       <div className="relative z-20 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-10 sm:py-14 space-y-12">
-        {/* Top Hero Body: Left Typography + Right Booking Widget */}
+        {/* Top Hero Body: Left Typography + Right Discovery & Planning Card */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-2">
           {/* Left Column: Heading & Calls to Action */}
           <div className="lg:col-span-7 space-y-6 animate-slide-up">
@@ -186,129 +186,133 @@ export const HeroSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: "Where to next?" Glassmorphism Booking Card */}
+          {/* Right Column: "Plan Your Adventure" Discovery Card */}
           <div className="lg:col-span-5 flex justify-center lg:justify-end">
             <div className="w-full max-w-md bg-[#0c1e28]/85 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 shadow-2xl space-y-5 text-white animate-fade-in">
               <div className="space-y-1">
-                <h3 className="font-serif text-2xl font-bold tracking-tight text-white">Where to next?</h3>
-                <p className="text-xs text-slate-300 font-medium">Find your perfect escape</p>
+                <h3 className="font-serif text-2xl font-bold tracking-tight text-white">
+                  {activeTab === 'places' ? 'Explore Places' : 'Travel Advice'}
+                </h3>
+                <p className="text-xs text-slate-300 font-medium">
+                  {activeTab === 'places'
+                    ? 'Discover breathtaking destinations worldwide'
+                    : 'Get authentic insider tips from real travelers'}
+                </p>
               </div>
 
               {/* Segmented Mode Tabs */}
-              <div className="grid grid-cols-3 gap-1 p-1 bg-black/30 rounded-2xl border border-white/10 text-xs font-semibold">
+              <div className="grid grid-cols-2 gap-1 p-1 bg-black/30 rounded-2xl border border-white/10 text-xs font-semibold">
                 <button
-                  onClick={() => setActiveTab('flights')}
+                  onClick={() => setActiveTab('places')}
                   className={cn(
-                    'py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer',
-                    activeTab === 'flights'
-                      ? 'bg-white/20 text-teal-300 shadow-xs font-bold border border-white/10'
-                      : 'text-slate-300 hover:text-white'
-                  )}
-                >
-                  <Plane className="w-3.5 h-3.5" />
-                  <span>Flights</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('hotels')}
-                  className={cn(
-                    'py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer',
-                    activeTab === 'hotels'
-                      ? 'bg-white/20 text-teal-300 shadow-xs font-bold border border-white/10'
-                      : 'text-slate-300 hover:text-white'
-                  )}
-                >
-                  <Building className="w-3.5 h-3.5" />
-                  <span>Hotels</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('experiences')}
-                  className={cn(
-                    'py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer',
-                    activeTab === 'experiences'
+                    'py-2 px-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer',
+                    activeTab === 'places'
                       ? 'bg-white/20 text-teal-300 shadow-xs font-bold border border-white/10'
                       : 'text-slate-300 hover:text-white'
                   )}
                 >
                   <Compass className="w-3.5 h-3.5" />
-                  <span>Experiences</span>
+                  <span>Find Places</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('advice')}
+                  className={cn(
+                    'py-2 px-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer',
+                    activeTab === 'advice'
+                      ? 'bg-white/20 text-teal-300 shadow-xs font-bold border border-white/10'
+                      : 'text-slate-300 hover:text-white'
+                  )}
+                >
+                  <Lightbulb className="w-3.5 h-3.5" />
+                  <span>Get Advice</span>
                 </button>
               </div>
 
               {/* Form Inputs */}
-              <form onSubmit={handleSearch} className="space-y-3">
-                {/* From Field */}
-                <div className="relative bg-black/40 border border-white/10 rounded-2xl p-3 flex items-center justify-between">
-                  <div className="flex-1">
-                    <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 block">From</span>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                      <input
-                        type="text"
-                        value={fromLocation}
-                        onChange={(e) => setFromLocation(e.target.value)}
-                        className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Swap Button */}
-                  <button
-                    type="button"
-                    onClick={handleSwap}
-                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 transition-colors ml-2 cursor-pointer"
-                    title="Swap locations"
-                  >
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* To Field */}
+              <form onSubmit={handleAction} className="space-y-3">
+                {/* Destination Input */}
                 <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
-                  <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 block">To</span>
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 block">
+                    {activeTab === 'advice' ? 'Destination for Advice' : 'Where to?'}
+                  </span>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="w-2 h-2 rounded-full bg-teal-400 shrink-0" />
                     <input
                       type="text"
-                      value={toLocation}
-                      onChange={(e) => setToLocation(e.target.value)}
-                      className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
+                      value={destinationQuery}
+                      onChange={(e) => setDestinationQuery(e.target.value)}
+                      placeholder="e.g. Kyoto, Santorini, Banff..."
+                      className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none placeholder:opacity-50"
                     />
                   </div>
                 </div>
 
-                {/* Dates & Travelers Grid */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
-                    <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-teal-400" /> Dates
-                    </span>
-                    <input
-                      type="text"
-                      value={dates}
-                      onChange={(e) => setDates(e.target.value)}
-                      className="w-full bg-transparent text-xs font-semibold text-white mt-1 focus:outline-none"
-                    />
-                  </div>
-                  <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
-                    <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1">
-                      <Users className="w-3 h-3 text-teal-400" /> Travelers
-                    </span>
-                    <input
-                      type="text"
-                      value={travelers}
-                      onChange={(e) => setTravelers(e.target.value)}
-                      className="w-full bg-transparent text-xs font-semibold text-white mt-1 focus:outline-none"
-                    />
-                  </div>
-                </div>
+                {/* Tab Specific Inputs */}
+                {activeTab === 'places' && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
+                      <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1">
+                        <Compass className="w-3 h-3 text-teal-400" /> Travel Vibe
+                      </span>
+                      <select
+                        value={travelVibe}
+                        onChange={(e) => setTravelVibe(e.target.value)}
+                        className="w-full bg-transparent text-xs font-semibold text-white mt-1 focus:outline-none cursor-pointer"
+                      >
+                        <option value="Cultural" className="bg-slate-900 text-white">Cultural Heritage</option>
+                        <option value="Romantic" className="bg-slate-900 text-white">Romantic Escape</option>
+                        <option value="Mountain" className="bg-slate-900 text-white">Mountain & Alpine</option>
+                        <option value="Beach" className="bg-slate-900 text-white">Coastal & Beach</option>
+                        <option value="Wildlife" className="bg-slate-900 text-white">Wildlife Safari</option>
+                        <option value="Adventure" className="bg-slate-900 text-white">Wild Adventure</option>
+                      </select>
+                    </div>
 
-                {/* Search Button */}
+                    <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
+                      <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-teal-400" /> Best Season
+                      </span>
+                      <select
+                        value={travelSeason}
+                        onChange={(e) => setTravelSeason(e.target.value)}
+                        className="w-full bg-transparent text-xs font-semibold text-white mt-1 focus:outline-none cursor-pointer"
+                      >
+                        <option value="Spring" className="bg-slate-900 text-white">Spring (Mar-May)</option>
+                        <option value="Summer" className="bg-slate-900 text-white">Summer (Jun-Aug)</option>
+                        <option value="Autumn" className="bg-slate-900 text-white">Autumn (Sep-Nov)</option>
+                        <option value="Winter" className="bg-slate-900 text-white">Winter (Dec-Feb)</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'advice' && (
+                  <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
+                    <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1">
+                      <Lightbulb className="w-3 h-3 text-teal-400" /> Advice Topic
+                    </span>
+                    <select
+                      value={adviceTopic}
+                      onChange={(e) => setAdviceTopic(e.target.value)}
+                      className="w-full bg-transparent text-xs font-semibold text-white mt-1 focus:outline-none cursor-pointer"
+                    >
+                      <option value="Best Time to Visit" className="bg-slate-900 text-white">Best Time & Weather</option>
+                      <option value="Safety & Scams" className="bg-slate-900 text-white">Safety Tips & Scams to Avoid</option>
+                      <option value="Local Customs" className="bg-slate-900 text-white">Local Customs & Etiquette</option>
+                      <option value="Food & Dining" className="bg-slate-900 text-white">Authentic Food & Hidden Taverns</option>
+                      <option value="Transport" className="bg-slate-900 text-white">Local Transit & Getting Around</option>
+                      <option value="Budgeting" className="bg-slate-900 text-white">Money & Tipping Culture</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Submit Button */}
                 <button
                   type="submit"
                   className="w-full py-3.5 rounded-2xl bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-teal-500/25 transition-all hover:scale-[1.02] cursor-pointer mt-2"
                 >
                   <span>
-                    {activeTab === 'flights' ? 'Search Flights' : activeTab === 'hotels' ? 'Search Hotels' : 'Explore Experiences'}
+                    {activeTab === 'places' ? 'Explore Destinations' : 'Browse Insider Advice'}
                   </span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
@@ -382,36 +386,36 @@ export const HeroSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Trust & Quality Guarantee Glass Card */}
+          {/* Right Column: Free Travel Discovery & Community Pillars Glass Card */}
           <div className="lg:col-span-5">
             <div className="bg-[#0c1e28]/75 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 <div className="space-y-1.5 flex flex-col items-center">
                   <div className="p-2 rounded-xl bg-white/10 text-teal-400">
-                    <ShieldCheck className="w-4 h-4" />
+                    <Lightbulb className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-medium text-slate-200 leading-tight">Best Price Guarantee</span>
-                </div>
-
-                <div className="space-y-1.5 flex flex-col items-center">
-                  <div className="p-2 rounded-xl bg-white/10 text-teal-400">
-                    <Headphones className="w-4 h-4" />
-                  </div>
-                  <span className="text-[11px] font-medium text-slate-200 leading-tight">24/7 Travel Support</span>
+                  <span className="text-[11px] font-medium text-slate-200 leading-tight">Verified Local Tips</span>
                 </div>
 
                 <div className="space-y-1.5 flex flex-col items-center">
                   <div className="p-2 rounded-xl bg-white/10 text-teal-400">
                     <CalendarCheck className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-medium text-slate-200 leading-tight">Flexible Bookings</span>
+                  <span className="text-[11px] font-medium text-slate-200 leading-tight">Curated Itineraries</span>
                 </div>
 
                 <div className="space-y-1.5 flex flex-col items-center">
                   <div className="p-2 rounded-xl bg-white/10 text-teal-400">
-                    <Lock className="w-4 h-4" />
+                    <Globe className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-medium text-slate-200 leading-tight">Secure Payments</span>
+                  <span className="text-[11px] font-medium text-slate-200 leading-tight">Interactive World Map</span>
+                </div>
+
+                <div className="space-y-1.5 flex flex-col items-center">
+                  <div className="p-2 rounded-xl bg-white/10 text-teal-400">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span className="text-[11px] font-medium text-slate-200 leading-tight">100% Free Planning</span>
                 </div>
               </div>
             </div>

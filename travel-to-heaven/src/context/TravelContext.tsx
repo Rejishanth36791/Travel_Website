@@ -7,6 +7,7 @@ import type { BudgetItem } from '@/types/budget.types';
 import type { Review } from '@/types/review.types';
 import type { UserProfile } from '@/types/user.types';
 import type { NotificationItem, Collection } from '@/types/community.types';
+import type { TravelAdvice } from '@/types/advice.types';
 import {
   MOCK_DESTINATIONS,
   MOCK_STORIES,
@@ -18,14 +19,21 @@ import {
   MOCK_COLLECTIONS,
   MOCK_USERS,
   CURRENT_DEV_USER,
+  MOCK_TRAVEL_ADVICE,
 } from '@/mock';
 
 interface TravelContextType {
   // Destinations & Favorites
   destinations: Destination[];
+  addDestination: (destination: Omit<Destination, 'id' | 'createdAt' | 'reviewsCount' | 'rating' | 'isFavorite'>) => Destination;
   favoriteDestinationIds: string[];
   toggleFavoriteDestination: (destinationId: string) => void;
   isDestinationFavorite: (destinationId: string) => boolean;
+
+  // Travel Advice & Tips
+  advice: TravelAdvice[];
+  addAdvice: (advice: Omit<TravelAdvice, 'id' | 'createdAt' | 'author' | 'helpfulCount' | 'isHelpful'>) => TravelAdvice;
+  toggleHelpfulAdvice: (adviceId: string) => void;
 
   // Collections
   collections: Collection[];
@@ -102,6 +110,8 @@ const STORAGE_KEYS = {
   PHOTOS: 't2h_photos',
   NOTIFICATIONS: 't2h_notifications',
   REVIEWS: 't2h_reviews',
+  DESTINATIONS: 't2h_destinations',
+  ADVICE: 't2h_travel_advice',
 };
 
 function getStoredJson<T>(key: string, fallback: T): T {
@@ -115,9 +125,16 @@ function getStoredJson<T>(key: string, fallback: T): T {
 
 export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Destinations & Favorites
-  const [destinations] = useState<Destination[]>(MOCK_DESTINATIONS);
+  const [destinations, setDestinations] = useState<Destination[]>(() =>
+    getStoredJson(STORAGE_KEYS.DESTINATIONS, MOCK_DESTINATIONS)
+  );
   const [favoriteDestinationIds, setFavoriteDestinationIds] = useState<string[]>(() =>
     getStoredJson(STORAGE_KEYS.FAVORITES, ['dest-1', 'dest-3', 'dest-6'])
+  );
+
+  // Travel Advice & Tips
+  const [advice, setAdvice] = useState<TravelAdvice[]>(() =>
+    getStoredJson(STORAGE_KEYS.ADVICE, MOCK_TRAVEL_ADVICE)
   );
 
   // Collections
@@ -171,6 +188,14 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 
   // Sync to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.DESTINATIONS, JSON.stringify(destinations));
+  }, [destinations]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.ADVICE, JSON.stringify(advice));
+  }, [advice]);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favoriteDestinationIds));
   }, [favoriteDestinationIds]);
@@ -407,6 +432,55 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setReviews((prev) => prev.filter((r) => r.id !== reviewId));
   };
 
+  // Destination & Advice Handlers
+  const addDestination = (destData: Omit<Destination, 'id' | 'createdAt' | 'reviewsCount' | 'rating' | 'isFavorite'>): Destination => {
+    const newDest: Destination = {
+      ...destData,
+      id: `dest-${Date.now()}`,
+      rating: 5.0,
+      reviewsCount: 1,
+      isFavorite: false,
+      createdAt: new Date().toISOString(),
+    };
+    setDestinations((prev) => [newDest, ...prev]);
+    return newDest;
+  };
+
+  const addAdvice = (adviceData: Omit<TravelAdvice, 'id' | 'createdAt' | 'author' | 'helpfulCount' | 'isHelpful'>): TravelAdvice => {
+    const newAdvice: TravelAdvice = {
+      ...adviceData,
+      id: `adv-${Date.now()}`,
+      author: {
+        id: CURRENT_DEV_USER.id,
+        name: CURRENT_DEV_USER.name,
+        avatar: CURRENT_DEV_USER.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+        badge: 'Explorer Contributor',
+        location: CURRENT_DEV_USER.location,
+      },
+      helpfulCount: 0,
+      isHelpful: false,
+      createdAt: new Date().toISOString(),
+    };
+    setAdvice((prev) => [newAdvice, ...prev]);
+    return newAdvice;
+  };
+
+  const toggleHelpfulAdvice = (adviceId: string) => {
+    setAdvice((prev) =>
+      prev.map((a) => {
+        if (a.id === adviceId) {
+          const isNowHelpful = !a.isHelpful;
+          return {
+            ...a,
+            isHelpful: isNowHelpful,
+            helpfulCount: a.helpfulCount + (isNowHelpful ? 1 : -1),
+          };
+        }
+        return a;
+      })
+    );
+  };
+
   // Trips & Itinerary Handlers
   const createTrip = (tripData: Omit<Trip, 'id' | 'createdAt' | 'days'>): Trip => {
     const newTrip: Trip = {
@@ -587,6 +661,12 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         addReview,
         toggleHelpfulReview,
         deleteReview,
+
+        advice,
+        addAdvice,
+        toggleHelpfulAdvice,
+
+        addDestination,
 
         trips,
         createTrip,

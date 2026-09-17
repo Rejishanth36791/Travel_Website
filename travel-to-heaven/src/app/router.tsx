@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 
 // Layouts
 import { MainLayout } from '@/layouts/MainLayout';
@@ -17,8 +17,6 @@ import { DestinationDetailPage } from '@/pages/destinations/DestinationDetailPag
 import { StoriesPage } from '@/pages/stories/StoriesPage';
 import { StoryDetailPage, CreateStoryPage, EditStoryPage } from '@/pages/stories/StoryDetailPage';
 import { PhotosPage, PhotoDetailPage } from '@/pages/photos/PhotosPage';
-import { TripsPage, CreateTripPage, TripDetailPage, ItineraryPage } from '@/pages/trips/TripsPage';
-import { BudgetPage } from '@/pages/budget/BudgetPage';
 import { ReviewsPage } from '@/pages/reviews/ReviewsPage';
 import { FavoritesPage, CollectionsPage, CollectionDetailPage } from '@/pages/favorites/FavoritesPage';
 import { CommunityPage, TravelersPage, TravelerProfilePage } from '@/pages/community/CommunityPage';
@@ -37,7 +35,7 @@ import {
 import { NotFoundPage } from '@/pages/common/NotFoundPage';
 import { UnauthorizedPage } from '@/pages/common/UnauthorizedPage';
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   {
     element: <MainLayout />,
     children: [
@@ -65,46 +63,8 @@ export const router = createBrowserRouter([
       },
       { path: '/photos', element: <PhotosPage /> },
       { path: '/photos/:id', element: <PhotoDetailPage /> },
-      {
-        path: '/trips',
-        element: (
-          <ProtectedRoute>
-            <TripsPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/trips/create',
-        element: (
-          <ProtectedRoute>
-            <CreateTripPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/trips/:id',
-        element: (
-          <ProtectedRoute>
-            <TripDetailPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/trips/:id/itinerary',
-        element: (
-          <ProtectedRoute>
-            <ItineraryPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/trips/:id/budget',
-        element: (
-          <ProtectedRoute>
-            <BudgetPage />
-          </ProtectedRoute>
-        ),
-      },
+      { path: '/trips', element: <Navigate to="/destinations" replace /> },
+      { path: '/trips/*', element: <Navigate to="/destinations" replace /> },
       { path: '/reviews', element: <ReviewsPage /> },
       {
         path: '/favorites',

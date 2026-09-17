@@ -1,201 +1,291 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { setPageTitle, cn } from '@/lib/utils';
 import {
-  Users, UserPlus, UserCheck, Globe, MapPin, BookOpen, Camera,
-  Plane, Award, Search, MessageSquare, Heart, Share2, Send,
+  MapPin, PlusSquare, Search, UserPlus, UserCheck
 } from 'lucide-react';
 import { Avatar } from '@/components/common/Avatar';
 import { Button } from '@/components/common/Button';
 import type { UserProfile } from '@/types/user.types';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTravel } from '@/context/TravelContext';
-import { MOCK_COMMUNITY_POSTS, type CommunityPost } from '@/mock/community';
+import { CURRENT_DEV_USER } from '@/mock';
+import { InstagramStoriesBar } from '@/components/instagram/InstagramStoriesBar';
+import { InstagramFeedCard, type FeedPost } from '@/components/instagram/InstagramFeedCard';
+import { CreatePostModal } from '@/components/instagram/CreatePostModal';
+
+const INITIAL_INSTAGRAM_POSTS: FeedPost[] = [
+  {
+    id: 'post-ig-1',
+    author: {
+      id: 'user-elena',
+      name: 'Elena Vassiliou',
+      username: 'elena_santorini',
+      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      location: 'Oia, Santorini, Greece',
+      isVerified: true,
+    },
+    destination: {
+      id: 'dest-1',
+      name: 'Santorini Caldera',
+      city: 'Oia',
+      country: 'Greece',
+    },
+    image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1200&q=85',
+    aspectRatio: 'portrait',
+    caption: 'Nothing compares to golden hour overlooking the cobalt Aegean caldera. Pro-tip: skip the castle ruins crowds and head to Imerovigli for a peaceful sunset. #santorini #greece #caldera #sunsetlovers #wanderlust',
+    likesCount: 1420,
+    commentsCount: 38,
+    createdAt: '2 HOURS AGO',
+    isLiked: true,
+    isSaved: true,
+    comments: [
+      { id: 'c-1', userName: 'alex_rivera', text: 'Stunning capture Elena! Adding Imerovigli to my next trip itinerary.', timeAgo: '1h' },
+      { id: 'c-2', userName: 'marco_amalfi', text: 'The light on the white cubic villas is pure poetry! 🏛️', timeAgo: '30m' },
+    ],
+  },
+  {
+    id: 'post-ig-2',
+    author: {
+      id: 'user-kenji',
+      name: 'Kenji Sato',
+      username: 'kenji_kyoto',
+      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      location: 'Kyoto, Japan',
+      isVerified: true,
+    },
+    destination: {
+      id: 'dest-2',
+      name: 'Arashiyama Bamboo Grove',
+      city: 'Kyoto',
+      country: 'Japan',
+    },
+    image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=85',
+    aspectRatio: 'portrait',
+    caption: 'Arrived at 6:15 AM before the first tour bus. Hearing the wind gently rustle the towering green stalks in total silence is an unforgettable Zen experience. #kyoto #japan #arashiyama #zen #slowtravel',
+    likesCount: 2185,
+    commentsCount: 64,
+    createdAt: '5 HOURS AGO',
+    isLiked: false,
+    comments: [
+      { id: 'c-3', userName: 'yuki_travels', text: 'Best advice ever! Early morning is the only way to experience it.', timeAgo: '3h' },
+    ],
+  },
+  {
+    id: 'post-ig-3',
+    author: {
+      id: 'user-clara',
+      name: 'Clara Tremblay',
+      username: 'clara_rockies',
+      avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
+      location: 'Banff National Park, Canada',
+      isVerified: true,
+    },
+    destination: {
+      id: 'dest-3',
+      name: 'Banff & Moraine Lake',
+      city: 'Banff',
+      country: 'Canada',
+    },
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=85',
+    aspectRatio: 'portrait',
+    caption: 'Paddling through glacial rock-flour turquoise waters under the Ten Peaks. Remember to reserve the Parks Canada shuttle well in advance! #banff #canada #rockies #naturelovers #adventure',
+    likesCount: 1890,
+    commentsCount: 42,
+    createdAt: '8 HOURS AGO',
+    isLiked: false,
+  },
+  {
+    id: 'post-ig-4',
+    author: {
+      id: 'user-marco',
+      name: 'Marco Rossi',
+      username: 'marco_amalfi',
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+      location: 'Positano, Italy',
+      isVerified: false,
+    },
+    destination: {
+      id: 'dest-4',
+      name: 'Amalfi Coast & Positano',
+      city: 'Positano',
+      country: 'Italy',
+    },
+    image: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=85',
+    aspectRatio: 'portrait',
+    caption: 'Pastel cliffside villas tumbling into the Tyrrhenian Sea. Always take the sea ferry between towns — the breeze and views are unmatched. #positano #amalficoast #italytravel #mediterranean',
+    likesCount: 1640,
+    commentsCount: 29,
+    createdAt: '12 HOURS AGO',
+    isLiked: false,
+  },
+];
 
 export const CommunityPage: React.FC = () => {
   const { travelers, isUserFollowed, toggleFollowUser } = useTravel();
-  const [posts, setPosts] = useState<CommunityPost[]>(MOCK_COMMUNITY_POSTS);
-  const [newPostText, setNewPostText] = useState('');
-  const [likedPosts, setLikedPosts] = useState<string[]>(['post-1']);
+  const [searchParams] = useSearchParams();
+  const [posts, setPosts] = useState<FeedPost[]>(INITIAL_INSTAGRAM_POSTS);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'forYou' | 'following' | 'advice'>('forYou');
 
   useEffect(() => {
-    setPageTitle('Traveler Community — Travel to Heaven');
-  }, []);
+    setPageTitle('Travel Community Feed — Travel to Heaven');
+    if (searchParams.get('create') === 'true') {
+      setIsCreateOpen(true);
+    }
+  }, [searchParams]);
 
-  const stats = [
-    { label: 'Active Travelers', value: '24.5K', icon: Users, color: 'text-sky-600', bg: 'bg-sky-50' },
-    { label: 'Stories Shared', value: '8.2K', icon: BookOpen, color: 'text-violet-600', bg: 'bg-violet-50' },
-    { label: 'Photos Uploaded', value: '52K', icon: Camera, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'Trips Planned', value: '15.8K', icon: Plane, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  ];
-
-  const handleCreatePost = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPostText.trim()) return;
-
-    const newPost: CommunityPost = {
-      id: `post-${Date.now()}`,
-      author: travelers[0],
-      content: newPostText.trim(),
-      likesCount: 0,
-      commentsCount: 0,
-      createdAt: new Date().toISOString(),
-    };
-
+  const handlePostCreated = (newPost: FeedPost) => {
     setPosts([newPost, ...posts]);
-    setNewPostText('');
   };
 
-  const toggleLike = (postId: string) => {
-    setLikedPosts((prev) => {
-      const isLiked = prev.includes(postId);
-      const next = isLiked ? prev.filter((id) => id !== postId) : [...prev, postId];
-      setPosts((list) =>
-        list.map((p) =>
-          p.id === postId ? { ...p, likesCount: p.likesCount + (isLiked ? -1 : 1) } : p
-        )
-      );
-      return next;
-    });
+  const handleLikeToggle = (postId: string, isLiked: boolean) => {
+    setPosts((list) =>
+      list.map((p) =>
+        p.id === postId
+          ? {
+              ...p,
+              isLiked,
+              likesCount: p.likesCount + (isLiked ? 1 : -1),
+            }
+          : p
+      )
+    );
   };
+
+  const handleSaveToggle = (postId: string, isSaved: boolean) => {
+    setPosts((list) =>
+      list.map((p) => (p.id === postId ? { ...p, isSaved } : p))
+    );
+  };
+
+  const filteredPosts = posts.filter((p) => {
+    if (activeTab === 'following') {
+      return isUserFollowed(p.author.id);
+    }
+    return true;
+  });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
-      {/* Header */}
-      <header className="text-center max-w-3xl mx-auto space-y-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold uppercase tracking-widest">
-          <Globe className="w-3.5 h-3.5" /> Global Community
-        </div>
-        <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">Traveler Community</h1>
-        <p className="text-slate-600 text-base leading-relaxed">
-          Connect with intrepid explorers, share real-time field dispatches, ask route advice, and find companions for your upcoming expeditions.
-        </p>
-      </header>
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      {/* Top Instagram Stories Bar */}
+      <InstagramStoriesBar onAddStoryClick={() => setIsCreateOpen(true)} />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <div key={s.label} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-2">
-              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
-                <Icon className="w-5 h-5" />
-              </div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900">{s.value}</p>
-              <p className="text-xs font-semibold text-slate-500">{s.label}</p>
+      {/* Main Grid: Instagram Feed on Left + Sticky Sidebar on Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Feed Stream */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Feed Filter Segmented Bar */}
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab('forYou')}
+                className={cn(
+                  'px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer',
+                  activeTab === 'forYou'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-white text-slate-600 hover:bg-slate-100'
+                )}
+              >
+                For You
+              </button>
+              <button
+                onClick={() => setActiveTab('following')}
+                className={cn(
+                  'px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer',
+                  activeTab === 'following'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-white text-slate-600 hover:bg-slate-100'
+                )}
+              >
+                Following
+              </button>
             </div>
-          );
-        })}
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Community Feed */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Create Post Box */}
-          <form onSubmit={handleCreatePost} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
-            <h2 className="text-sm font-bold text-slate-900">Share with the Community</h2>
-            <textarea
-              rows={3}
-              placeholder="Where are you exploring right now? Ask travel tips or share a route insight..."
-              value={newPostText}
-              onChange={(e) => setNewPostText(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
-            />
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-slate-400">Markdown formatting supported</span>
-              <Button variant="primary" size="sm" type="submit" rightIcon={<Send className="w-3.5 h-3.5" />}>
-                Post Dispatch
-              </Button>
-            </div>
-          </form>
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<PlusSquare className="w-4 h-4" />}
+              onClick={() => setIsCreateOpen(true)}
+            >
+              New Post
+            </Button>
+          </div>
 
-          {/* Posts Feed */}
-          <div className="space-y-4">
-            {posts.map((post) => {
-              const isLiked = likedPosts.includes(post.id);
-              return (
-                <article key={post.id} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3.5">
-                  <div className="flex items-center justify-between">
-                    <Link to={`/travelers/${post.author.id}`} className="flex items-center gap-3 group">
-                      <Avatar name={post.author.name} imageUrl={post.author.avatarUrl} size="md" />
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
-                          {post.author.name}
-                        </h3>
-                        {post.location && (
-                          <p className="text-xs text-slate-500 flex items-center gap-1">
-                            <MapPin className="w-3 h-3" /> {post.location}
-                          </p>
-                        )}
-                      </div>
-                    </Link>
-                    <span className="text-[11px] text-slate-400">Just now</span>
-                  </div>
-
-                  <p className="text-sm text-slate-700 leading-relaxed">{post.content}</p>
-
-                  {post.image && (
-                    <div className="rounded-xl overflow-hidden max-h-72 border border-slate-100">
-                      <img src={post.image} alt="Post media" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-
-                  {post.tags && post.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {post.tags.map((tag) => (
-                        <span key={tag} className="text-[11px] font-semibold text-sky-600 bg-sky-50 px-2.5 py-0.5 rounded-full">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-4 pt-2 border-t border-slate-100 text-slate-500 text-xs font-semibold">
-                    <button
-                      onClick={() => toggleLike(post.id)}
-                      className={cn('flex items-center gap-1.5 transition-colors', isLiked ? 'text-rose-600 font-bold' : 'hover:text-rose-600')}
-                    >
-                      <Heart className={cn('w-4 h-4', isLiked && 'fill-rose-600')} /> {post.likesCount}
-                    </button>
-                    <button className="flex items-center gap-1.5 hover:text-sky-600 transition-colors">
-                      <MessageSquare className="w-4 h-4" /> {post.commentsCount} comments
-                    </button>
-                    <button className="flex items-center gap-1.5 hover:text-slate-800 transition-colors ml-auto">
-                      <Share2 className="w-4 h-4" /> Share
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
+          {/* Feed Stream */}
+          <div className="space-y-6">
+            {filteredPosts.map((post) => (
+              <InstagramFeedCard
+                key={post.id}
+                post={post}
+                onLikeToggle={handleLikeToggle}
+                onSaveToggle={handleSaveToggle}
+              />
+            ))}
           </div>
         </div>
 
-        {/* Right Column: Featured Travelers */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+        {/* Right Sticky Sidebar (Desktop only) */}
+        <aside className="hidden lg:block lg:col-span-4 sticky top-24 space-y-6">
+          {/* Current User Row */}
+          <div className="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full p-0.5 bg-linear-to-tr from-amber-500 via-rose-500 to-fuchsia-600">
+                <img
+                  src={CURRENT_DEV_USER.avatarUrl}
+                  alt={CURRENT_DEV_USER.name}
+                  className="w-full h-full rounded-full object-cover p-px bg-white"
+                />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900">
+                  {CURRENT_DEV_USER.name.toLowerCase().replace(/\s+/g, '_')}
+                </p>
+                <p className="text-[11px] text-slate-400">{CURRENT_DEV_USER.name}</p>
+              </div>
+            </div>
+            <Link to="/profile" className="text-xs font-bold text-teal-600 hover:underline">
+              View
+            </Link>
+          </div>
+
+          {/* Suggested Explorers */}
+          <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-900">Featured Globetrotters</h2>
-              <Link to="/travelers" className="text-xs font-bold text-sky-600 hover:text-sky-700">
-                View All
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Suggested for you</span>
+              <Link to="/travelers" className="text-xs font-bold text-slate-900 hover:underline">
+                See All
               </Link>
             </div>
+
             <div className="space-y-3.5">
-              {travelers.slice(0, 4).map((traveler) => {
-                const isFollowing = isUserFollowed(traveler.id);
+              {travelers.slice(0, 5).map((t) => {
+                const isFollowing = isUserFollowed(t.id);
                 return (
-                  <div key={traveler.id} className="flex items-center justify-between gap-3">
-                    <Link to={`/travelers/${traveler.id}`} className="flex items-center gap-3 min-w-0">
-                      <Avatar name={traveler.name} imageUrl={traveler.avatarUrl} size="sm" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-800 truncate hover:text-sky-600">{traveler.name}</p>
-                        <p className="text-[11px] text-slate-400 truncate">{traveler.location || 'Global Nomad'}</p>
+                  <div key={t.id} className="flex items-center justify-between">
+                    <Link to={`/travelers/${t.id}`} className="flex items-center gap-2.5 group">
+                      <img
+                        src={t.avatarUrl}
+                        alt={t.name}
+                        className="w-9 h-9 rounded-full object-cover border border-slate-100 group-hover:scale-105 transition-transform"
+                      />
+                      <div>
+                        <p className="text-xs font-bold text-slate-900 group-hover:text-teal-600 transition-colors">
+                          {t.name.toLowerCase().replace(/\s+/g, '_')}
+                        </p>
+                        <p className="text-[10px] text-slate-400 truncate max-w-28">
+                          {t.location || 'Explorer'}
+                        </p>
                       </div>
                     </Link>
+
                     <button
-                      onClick={() => toggleFollowUser(traveler.id)}
+                      onClick={() => toggleFollowUser(t.id)}
                       className={cn(
-                        'px-3 py-1 rounded-full text-xs font-semibold shrink-0 transition-colors cursor-pointer',
-                        isFollowing ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-sky-600 text-white hover:bg-sky-700'
+                        'px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer',
+                        isFollowing
+                          ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          : 'bg-teal-400 hover:bg-teal-300 text-slate-950 shadow-xs'
                       )}
                     >
                       {isFollowing ? 'Following' : 'Follow'}
@@ -206,21 +296,41 @@ export const CommunityPage: React.FC = () => {
             </div>
           </div>
 
-          {/* CTA Box */}
-          <div className="relative rounded-3xl overflow-hidden bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600 text-white p-7 shadow-lg text-center space-y-3">
-            <Award className="w-8 h-8 mx-auto text-amber-300" />
-            <h3 className="font-serif text-xl font-bold">Become a Travel to Heaven Creator</h3>
-            <p className="text-white/80 text-xs">
-              Publish rich multimedia travelogues, guidebooks, and photography seen by hundreds of thousands of explorers.
-            </p>
-            <Link to="/stories/create" className="inline-block mt-2">
-              <span className="px-5 py-2.5 rounded-full bg-white text-violet-700 text-xs font-bold hover:bg-white/90 shadow-md">
-                Start Writing
-              </span>
-            </Link>
+          {/* Trending Travel Hashtags */}
+          <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+              Trending Destinations
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                '#santorini', '#kyoto', '#amalficoast', '#banff',
+                '#swissalps', '#solotravel', '#slowtravel', '#naturelovers'
+              ].map((tag) => (
+                <Link
+                  key={tag}
+                  to={`/destinations?query=${encodeURIComponent(tag.replace('#', ''))}`}
+                  className="px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 transition-colors"
+                >
+                  {tag}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+
+          {/* Footer Meta */}
+          <div className="text-[11px] text-slate-400 space-y-1 px-1">
+            <p>© 2026 TRAVEL TO HEAVEN FROM GLOBETROTTERS</p>
+            <p>Built for authentic exploration, trip planning & advice</p>
+          </div>
+        </aside>
       </div>
+
+      {/* Instagram Create Post Modal */}
+      <CreatePostModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onPostCreated={handlePostCreated}
+      />
     </div>
   );
 };
@@ -390,7 +500,7 @@ export const TravelerProfilePage: React.FC = () => {
             </div>
             <div>
               <p className="text-xl font-extrabold text-slate-900">{traveler.tripsCount || 0}</p>
-              <p className="text-xs text-slate-400">Trips</p>
+              <p className="text-xs text-slate-400">Spots</p>
             </div>
             <div>
               <p className="text-xl font-extrabold text-slate-900">{traveler.followersCount || 0}</p>

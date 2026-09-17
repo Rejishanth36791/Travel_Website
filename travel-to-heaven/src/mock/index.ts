@@ -7,3 +7,4 @@ export * from './trips';
 export * from './notifications';
 export * from './collections';
 export * from './community';
+export * from './advice';

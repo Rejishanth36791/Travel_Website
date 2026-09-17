@@ -21,7 +21,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return stored;
       }
     }
-    return 'system';
+    return 'dark';
   });
 
   const [isDark, setIsDark] = useState<boolean>(() => {

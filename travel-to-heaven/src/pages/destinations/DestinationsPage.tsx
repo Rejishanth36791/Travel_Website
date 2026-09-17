@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { setPageTitle } from '@/lib/utils';
-import { Search, SlidersHorizontal, Grid3X3, LayoutList } from 'lucide-react';
+import { Search, SlidersHorizontal, Grid3X3, LayoutList, PlusCircle, Check, X, Sparkles, MapPin } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import type { DestinationCategory } from '@/types/destination.types';
 import { DestinationCard, DestinationCardSkeleton } from '@/components/destination/DestinationCard';
@@ -9,6 +9,7 @@ import { Pagination } from '@/components/common/Pagination';
 import { FilterPanel } from '@/components/common/FilterPanel';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
+import { Button } from '@/components/common/Button';
 import { cn } from '@/lib/utils';
 
 import { useTravel } from '@/context/TravelContext';
@@ -17,13 +18,63 @@ const PAGE_SIZE = 12;
 
 export const DestinationsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { destinations, isDestinationFavorite, toggleFavoriteDestination } = useTravel();
+  const { destinations, addDestination, isDestinationFavorite, toggleFavoriteDestination } = useTravel();
 
   // State
   const [isLoading] = useState(false);
   const [error] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // New Destination Form State
+  const [newName, setNewName] = useState('');
+  const [newCountry, setNewCountry] = useState('');
+  const [newCity, setNewCity] = useState('');
+  const [newCategory, setNewCategory] = useState<DestinationCategory>('Romantic');
+  const [newRegion, setNewRegion] = useState('');
+  const [newBestSeason, setNewBestSeason] = useState('May to October');
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+
+  const handleCreateDestination = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim() || !newCountry.trim() || !newDescription.trim()) return;
+
+    const fallbackImages = [
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80',
+    ];
+
+    const img = newImageUrl.trim() || fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+
+    addDestination({
+      name: newName.trim(),
+      country: newCountry.trim(),
+      city: newCity.trim() || newName.trim(),
+      region: newRegion.trim() || newCountry.trim(),
+      category: newCategory,
+      description: newDescription.trim(),
+      bestTimeToVisit: newBestSeason,
+      coverImageUrl: img,
+      images: [{ id: `img-${Date.now()}`, url: img, isPrimary: true, caption: newName.trim() }],
+      coordinates: { latitude: 35.0, longitude: 25.0 },
+    });
+
+    setNewName('');
+    setNewCountry('');
+    setNewCity('');
+    setNewRegion('');
+    setNewImageUrl('');
+    setNewDescription('');
+    setShowAddModal(false);
+
+    setToastMessage(`"${newName.trim()}" was successfully added to places!`);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   // Filter/Sort state from URL params
   const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || '');
@@ -163,6 +214,17 @@ export const DestinationsPage: React.FC = () => {
                 <span className="w-2 h-2 rounded-full bg-sky-400" />
               )}
             </button>
+
+            {/* Suggest a Place Button */}
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<PlusCircle className="w-4 h-4" />}
+              onClick={() => setShowAddModal(true)}
+              className="whitespace-nowrap"
+            >
+              Suggest a Place
+            </Button>
 
             {/* View Mode Toggle */}
             <div className="hidden sm:flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
@@ -307,6 +369,143 @@ export const DestinationsPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 border border-slate-700 animate-slide-up text-sm font-semibold">
+          <Check className="w-4 h-4 text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Suggest / Add Place Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-teal-50 text-teal-600">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-serif text-xl font-bold text-slate-900">Suggest a Destination</h3>
+                  <p className="text-xs text-slate-500">Contribute a new wonder or hidden gem to explore</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateDestination} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Destination Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Hallstatt Alpine Village"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Country</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Austria"
+                    value={newCountry}
+                    onChange={(e) => setNewCountry(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">City / Town</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Hallstatt"
+                    value={newCity}
+                    onChange={(e) => setNewCity(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Category Vibe</label>
+                  <select
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value as DestinationCategory)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs font-semibold rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                  >
+                    <option value="Romantic">Romantic</option>
+                    <option value="Cultural">Cultural</option>
+                    <option value="Mountain">Mountain</option>
+                    <option value="Beach">Beach</option>
+                    <option value="Wildlife">Wildlife</option>
+                    <option value="Adventure">Adventure</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Best Season</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. May – October"
+                    value={newBestSeason}
+                    onChange={(e) => setNewBestSeason(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Cover Photo URL (Optional)</label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/photo-..."
+                  value={newImageUrl}
+                  onChange={(e) => setNewImageUrl(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Overview & Description</label>
+                <textarea
+                  rows={3}
+                  placeholder="What makes this place special? Describe the views, atmosphere, and reasons travelers should visit..."
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                  required
+                />
+              </div>
+
+              <div className="pt-2 flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <Button variant="primary" size="sm" type="submit" rightIcon={<Sparkles className="w-3.5 h-3.5" />}>
+                  Add Destination
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

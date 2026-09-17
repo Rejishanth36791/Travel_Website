@@ -10,7 +10,7 @@ export const Footer: React.FC = () => {
           {/* Brand */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-emerald-400 flex items-center justify-center text-white shadow-md">
+              <div className="w-10 h-10 rounded-2xl bg-linear-to-tr from-sky-500 to-emerald-400 flex items-center justify-center text-white shadow-md">
                 <Compass className="w-6 h-6 stroke-[2.2]" />
               </div>
               <span className="font-serif font-bold text-2xl text-white tracking-tight">
@@ -18,7 +18,7 @@ export const Footer: React.FC = () => {
               </span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-              Discover celestial destinations, read authentic travel stories, design day-by-day itineraries, and connect with a global community of passionate travelers.
+              Discover celestial destinations, browse authentic travel stories and photos, explore insider advice, and connect with a global community of passionate explorers.
             </p>
             <div className="flex items-center gap-3 pt-2 text-slate-400">
               <Globe className="w-5 h-5 text-sky-400" />
@@ -55,18 +55,18 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Planning */}
+          {/* Community & Tips */}
           <div>
-            <h4 className="font-semibold text-white text-sm tracking-wider uppercase mb-4">Planning</h4>
+            <h4 className="font-semibold text-white text-sm tracking-wider uppercase mb-4">Community</h4>
             <ul className="space-y-2.5 text-sm">
-              <li>
-                <Link to="/trips" className="hover:text-sky-400 transition-colors">
-                  Trip Planner
-                </Link>
-              </li>
               <li>
                 <Link to="/community" className="hover:text-sky-400 transition-colors">
                   Traveler Community
+                </Link>
+              </li>
+              <li>
+                <Link to="/destinations#advice" className="hover:text-sky-400 transition-colors">
+                  Traveler Advice
                 </Link>
               </li>
               <li>
