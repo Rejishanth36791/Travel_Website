@@ -311,33 +311,38 @@ export const BudgetPage: React.FC = () => {
             }
 
             return (
-              <div key={item.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors">
-                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', meta.bg, meta.color)}>
-                  <Icon className="w-4 h-4" />
+              <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', meta.bg, meta.color)}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{item.name}</p>
+                    <p className="text-[10px] text-slate-400 capitalize">{item.category.toLowerCase().replace('_', ' ')}</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
-                  <p className="text-[10px] text-slate-400 capitalize">{item.category.toLowerCase().replace('_', ' ')}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-sm font-semibold text-slate-800">{formatCurrency(item.actualAmount || 0)}</p>
-                  <p className="text-[10px] text-slate-400">planned {formatCurrency(item.estimatedAmount)}</p>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => startEdit(item)}
-                    className="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-slate-100 transition-colors"
-                    title="Edit expense"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => deleteBudgetItem(item.id)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition-colors"
-                    title="Delete expense"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+
+                <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/80 pt-2 sm:pt-0">
+                  <div className="text-left sm:text-right shrink-0">
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{formatCurrency(item.actualAmount || 0)}</p>
+                    <p className="text-[10px] text-slate-400">planned {formatCurrency(item.estimatedAmount)}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => startEdit(item)}
+                      className="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      title="Edit expense"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => deleteBudgetItem(item.id)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      title="Delete expense"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
