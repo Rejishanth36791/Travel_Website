@@ -124,9 +124,24 @@ const INITIAL_INSTAGRAM_POSTS: FeedPost[] = [
 export const CommunityPage: React.FC = () => {
   const { travelers, isUserFollowed, toggleFollowUser } = useTravel();
   const [searchParams] = useSearchParams();
-  const [posts, setPosts] = useState<FeedPost[]>(INITIAL_INSTAGRAM_POSTS);
+  const [posts, setPosts] = useState<FeedPost[]>(() => {
+    try {
+      const stored = localStorage.getItem('t2h_community_posts');
+      return stored ? JSON.parse(stored) : INITIAL_INSTAGRAM_POSTS;
+    } catch {
+      return INITIAL_INSTAGRAM_POSTS;
+    }
+  });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'forYou' | 'following' | 'advice'>('forYou');
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('t2h_community_posts', JSON.stringify(posts));
+    } catch {
+      // ignore
+    }
+  }, [posts]);
 
   useEffect(() => {
     setPageTitle('Travel Community Feed — Travel to Heaven');

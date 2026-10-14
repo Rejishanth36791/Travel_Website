@@ -29,6 +29,7 @@ export interface Trip {
   title: string;
   description?: string;
   destination: Destination;
+  destinationsList?: Destination[];
   startDate: string;
   endDate: string;
   travelersCount: number;
@@ -37,5 +38,7 @@ export interface Trip {
   days?: TripDay[];
   totalBudget?: number;
   totalSpent?: number;
+  currency?: string;
+  isCompleted?: boolean;
   createdAt: string;
 }

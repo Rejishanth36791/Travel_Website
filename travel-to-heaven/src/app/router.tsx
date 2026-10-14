@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 // Layouts
 import { MainLayout } from '@/layouts/MainLayout';
@@ -14,6 +14,12 @@ import { HomePage } from '@/pages/home/HomePage';
 import { DiscoverPage } from '@/pages/discover/DiscoverPage';
 import { DestinationsPage } from '@/pages/destinations/DestinationsPage';
 import { DestinationDetailPage } from '@/pages/destinations/DestinationDetailPage';
+import { CountryDetailPage } from '@/pages/country/CountryDetailPage';
+import { TripsPage } from '@/pages/trips/TripsPage';
+import { TripDetailPage } from '@/pages/trips/TripDetailPage';
+import { BudgetPage } from '@/pages/budget/BudgetPage';
+import { GearCalculatorPage } from '@/pages/gear/GearCalculatorPage';
+import { ChecklistPage } from '@/pages/checklist/ChecklistPage';
 import { StoriesPage } from '@/pages/stories/StoriesPage';
 import { StoryDetailPage, CreateStoryPage, EditStoryPage } from '@/pages/stories/StoryDetailPage';
 import { PhotosPage, PhotoDetailPage } from '@/pages/photos/PhotosPage';
@@ -43,6 +49,12 @@ const router = createBrowserRouter([
       { path: '/discover', element: <DiscoverPage /> },
       { path: '/destinations', element: <DestinationsPage /> },
       { path: '/destinations/:id', element: <DestinationDetailPage /> },
+      { path: '/country/:countryName', element: <CountryDetailPage /> },
+      { path: '/trips', element: <TripsPage /> },
+      { path: '/trips/:id', element: <TripDetailPage /> },
+      { path: '/budget', element: <BudgetPage /> },
+      { path: '/gear-calculator', element: <GearCalculatorPage /> },
+      { path: '/checklist', element: <ChecklistPage /> },
       { path: '/stories', element: <StoriesPage /> },
       { path: '/stories/:id', element: <StoryDetailPage /> },
       {
@@ -63,8 +75,6 @@ const router = createBrowserRouter([
       },
       { path: '/photos', element: <PhotosPage /> },
       { path: '/photos/:id', element: <PhotoDetailPage /> },
-      { path: '/trips', element: <Navigate to="/destinations" replace /> },
-      { path: '/trips/*', element: <Navigate to="/destinations" replace /> },
       { path: '/reviews', element: <ReviewsPage /> },
       {
         path: '/favorites',

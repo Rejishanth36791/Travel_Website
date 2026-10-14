@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { setPageTitle } from '@/lib/utils';
 import {
   MapPin, Heart, Star, Clock, Globe, Languages, Coins,
-  Calendar, Camera, ArrowLeft, Share2, ChevronLeft, ChevronRight,
+  Calendar, ArrowLeft, Share2, ChevronLeft, ChevronRight,
   Bookmark, Check, Plus, MessageSquare, ThumbsUp, Send, X, ExternalLink,
-  Lightbulb, ShieldAlert, Utensils, Car
+  Lightbulb, ShieldAlert, Utensils, Car, Search, Compass
 } from 'lucide-react';
 import type { Destination } from '@/types/destination.types';
 import type { AdviceCategory } from '@/types/advice.types';
@@ -19,7 +19,6 @@ import { cn } from '@/lib/utils';
 
 export const DestinationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const {
     destinations,
     isDestinationFavorite,
@@ -32,6 +31,9 @@ export const DestinationDetailPage: React.FC = () => {
     advice,
     addAdvice,
     toggleHelpfulAdvice,
+    trips,
+    addDestinationToTrip,
+    createTrip,
   } = useTravel();
 
   const [destination, setDestination] = useState<Destination | null>(null);
@@ -41,6 +43,8 @@ export const DestinationDetailPage: React.FC = () => {
 
   // Workflow Modals & States
   const [showSaveCollectionModal, setShowSaveCollectionModal] = useState(false);
+  const [showAddToTripModal, setShowAddToTripModal] = useState(false);
+  const [newTripTitle, setNewTripTitle] = useState('');
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showAdviceModal, setShowAdviceModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -164,12 +168,14 @@ export const DestinationDetailPage: React.FC = () => {
   ];
 
   const infoItems = [
-    { icon: Calendar, label: 'Best Time', value: destination.bestTimeToVisit || 'Year-round' },
-    { icon: Languages, label: 'Language', value: destination.language || 'Various' },
-    { icon: Coins, label: 'Currency', value: destination.currency || 'Multiple' },
-    { icon: Clock, label: 'Time Zone', value: destination.timeZone || 'Varies' },
-    { icon: Star, label: 'Average Rating', value: destination.rating.toFixed(1) },
-    { icon: Globe, label: 'Region', value: destination.region },
+    { icon: Calendar, label: 'Best Time to Visit', value: destination.bestTimeToVisit || 'Spring & Autumn (Recommended)' },
+    { icon: Clock, label: 'Opening Hours', value: destination.openingHours || '08:30 AM – 05:30 PM (Daily)' },
+    { icon: Coins, label: 'Entrance Fees', value: destination.entranceFee || `${destination.currency || 'Local Currency'} / Official verified rates` },
+    { icon: Clock, label: 'Suggested Duration', value: destination.suggestedDuration || 'Half Day to Full Day (3–6 Hours)' },
+    { icon: Languages, label: 'Official Language', value: destination.language || 'Local Language, English' },
+    { icon: Coins, label: 'Currency', value: destination.currency || 'Local Currency' },
+    { icon: Star, label: 'Average Rating', value: `${destination.rating.toFixed(1)} / 5.0 (${destination.reviewsCount} reviews)` },
+    { icon: Globe, label: 'Region & Country', value: `${destination.city}, ${destination.country}` },
   ];
 
   return (
@@ -275,27 +281,50 @@ export const DestinationDetailPage: React.FC = () => {
       {/* Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Quick Actions Bar */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="primary"
-            leftIcon={<Lightbulb className="w-4 h-4" />}
-            onClick={() => setShowAdviceModal(true)}
+            className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold shadow-md shadow-teal-500/20"
+            leftIcon={<Plus className="w-4 h-4 stroke-3" />}
+            onClick={() => setShowAddToTripModal(true)}
           >
-            Share Advice / Tip
+            Add to My Trip Plan
           </Button>
+
+          <Button
+            variant={isFavorite ? 'primary' : 'outline'}
+            className={cn(isFavorite && 'bg-rose-500 hover:bg-rose-600 text-white border-rose-500')}
+            leftIcon={<Heart className={cn('w-4 h-4', isFavorite && 'fill-white')} />}
+            onClick={() => {
+              toggleFavoriteDestination(destination.id);
+              showToast(isFavorite ? 'Removed from favorites' : 'Saved to favorites!');
+            }}
+          >
+            {isFavorite ? 'Saved in Favourites' : 'Add to Favourites'}
+          </Button>
+
+          <a
+            href="#google-info"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-sm font-semibold transition-colors"
+          >
+            <ExternalLink className="w-4 h-4 text-sky-500" />
+            <span>Search Info on Google</span>
+          </a>
+
           <Button
             variant="outline"
             leftIcon={<Bookmark className="w-4 h-4 text-purple-500" />}
             onClick={() => setShowSaveCollectionModal(true)}
           >
-            Save to Collection Board
+            Save to Collection
           </Button>
+
           <Button
             variant="outline"
-            leftIcon={<Camera className="w-4 h-4 text-sky-600" />}
-            onClick={() => navigate(`/photos`)}
+            leftIcon={<Lightbulb className="w-4 h-4 text-teal-600" />}
+            onClick={() => setShowAdviceModal(true)}
           >
-            Explore Community Photos
+            Share Tip / Advice
           </Button>
         </div>
 
@@ -359,6 +388,39 @@ export const DestinationDetailPage: React.FC = () => {
                 </div>
               </section>
             )}
+
+            {/* Google Search Information Section (Section Two F) */}
+            <section id="google-info" className="bg-slate-900 text-white rounded-3xl p-6 sm:p-7 border border-slate-800 shadow-xl space-y-4">
+              <div className="flex items-center gap-2.5 text-teal-300">
+                <Search className="w-5 h-5 text-teal-400" />
+                <h3 className="font-serif text-lg font-bold">Find More Information on Google</h3>
+              </div>
+              <p className="text-xs text-slate-300 font-light max-w-xl">
+                Research verified historical sources, current entrance ticket prices, live opening hours, and local transport options directly on Google:
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                {[
+                  { label: `Search ${destination.name} History`, query: `${destination.name} ${destination.country} history background significance` },
+                  { label: 'Check Current Entrance Fees', query: `${destination.name} ${destination.city} current entrance fees ticket price` },
+                  { label: 'Check Live Opening Hours', query: `${destination.name} ${destination.city} opening hours visiting schedule` },
+                  { label: 'Search Travel Guidelines & Rules', query: `${destination.name} visitor guidelines etiquette dress code` },
+                  { label: 'Find Nearby Authentic Restaurants', query: `best restaurants food near ${destination.name} ${destination.city}` },
+                  { label: 'Search Transportation & Directions', query: `how to get to ${destination.name} from ${destination.city} transit options` },
+                ].map((item, idx) => (
+                  <a
+                    key={idx}
+                    href={`https://www.google.com/search?q=${encodeURIComponent(item.query)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 text-xs font-semibold text-slate-200 hover:text-white transition-all group"
+                  >
+                    <span>{item.label}</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-teal-400 group-hover:translate-x-0.5 transition-transform" />
+                  </a>
+                ))}
+              </div>
+            </section>
 
             {/* Traveler Advice & Insider Tips Section */}
             <section id="advice" className="space-y-6 pt-6 border-t border-slate-200">
@@ -666,6 +728,104 @@ export const DestinationDetailPage: React.FC = () => {
       </div>
 
 
+
+      {/* 1. Add to My Trip Plan Modal */}
+      {showAddToTripModal && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-200 animate-scale-in">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-teal-50 text-teal-600">
+                  <Compass className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">Add to My Trip Plan</h3>
+                  <p className="text-[11px] text-slate-500">Add "{destination.name}" to your route</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddToTripModal(false)}
+                className="p-1 rounded-full hover:bg-slate-100 text-slate-400 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Existing Trips List */}
+            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Select Trip Itinerary</label>
+              {trips.length === 0 ? (
+                <p className="text-xs text-slate-500 py-3 text-center">No active trips yet. Create one below!</p>
+              ) : (
+                trips.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      addDestinationToTrip(t.id, destination);
+                      setShowAddToTripModal(false);
+                      showToast(`Added to "${t.title}"!`);
+                    }}
+                    className="w-full flex items-center justify-between p-3.5 rounded-2xl text-left border border-slate-200 hover:bg-teal-50/50 hover:border-teal-300 transition-all cursor-pointer group"
+                  >
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 group-hover:text-teal-700">{t.title}</div>
+                      <div className="text-[10px] text-slate-400">
+                        {t.destinationsList?.length || 1} destinations • {t.currency || 'USD'} {t.totalBudget || 0}
+                      </div>
+                    </div>
+                    <Plus className="w-4 h-4 text-teal-600" />
+                  </button>
+                ))
+              )}
+            </div>
+
+            {/* Quick Create New Trip */}
+            <div className="pt-3 border-t border-slate-100 space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Or Create a New Trip</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. My Next Adventure..."
+                  value={newTripTitle}
+                  onChange={(e) => setNewTripTitle(e.target.value)}
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+                <button
+                  onClick={() => {
+                    if (!newTripTitle.trim()) return;
+                    const newTrip = createTrip({
+                      title: newTripTitle.trim(),
+                      destination,
+                      startDate: new Date().toISOString().split('T')[0],
+                      endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+                      travelersCount: 2,
+                      currency: 'USD',
+                      totalBudget: 2500,
+                      totalSpent: 0,
+                    });
+                    addDestinationToTrip(newTrip.id, destination);
+                    setNewTripTitle('');
+                    setShowAddToTripModal(false);
+                    showToast(`Created trip "${newTrip.title}" with ${destination.name}!`);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs cursor-pointer transition-colors"
+                >
+                  Create & Add
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setShowAddToTripModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2. Save to Collection Modal */}
       {showSaveCollectionModal && (

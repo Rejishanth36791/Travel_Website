@@ -55,9 +55,9 @@ const POPULAR_SPOTS: PopularSpot[] = [
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
 
-  // Travel Discovery & Advice Card State
-  const [activeTab, setActiveTab] = useState<'places' | 'advice'>('places');
-  const [destinationQuery, setDestinationQuery] = useState('Kyoto, Japan');
+  // Travel Discovery, Country Search & Advice Card State
+  const [activeTab, setActiveTab] = useState<'country' | 'places' | 'advice'>('country');
+  const [destinationQuery, setDestinationQuery] = useState('Japan');
   const [travelVibe, setTravelVibe] = useState('Cultural');
   const [travelSeason, setTravelSeason] = useState('Spring');
   const [adviceTopic, setAdviceTopic] = useState('Best Time to Visit');
@@ -66,11 +66,15 @@ export const HeroSection: React.FC = () => {
 
   const handleAction = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanDest = destinationQuery.split(',')[0].trim();
-    if (activeTab === 'places') {
-      navigate(`/destinations?query=${encodeURIComponent(cleanDest)}`);
+    const clean = destinationQuery.trim();
+    if (!clean) return;
+
+    if (activeTab === 'country') {
+      navigate(`/country/${encodeURIComponent(clean.toLowerCase())}`);
+    } else if (activeTab === 'places') {
+      navigate(`/destinations?query=${encodeURIComponent(clean)}`);
     } else {
-      navigate(`/destinations?query=${encodeURIComponent(cleanDest)}#advice`);
+      navigate(`/destinations?query=${encodeURIComponent(clean)}#advice`);
     }
   };
 
@@ -191,40 +195,64 @@ export const HeroSection: React.FC = () => {
             <div className="w-full max-w-md bg-[#0c1e28]/85 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 shadow-2xl space-y-5 text-white animate-fade-in">
               <div className="space-y-1">
                 <h3 className="font-serif text-2xl font-bold tracking-tight text-white">
-                  {activeTab === 'places' ? 'Explore Places' : 'Travel Advice'}
+                  {activeTab === 'country'
+                    ? 'Search Any Country'
+                    : activeTab === 'places'
+                    ? 'Explore Places'
+                    : 'Travel Advice'}
                 </h3>
                 <p className="text-xs text-slate-300 font-medium">
-                  {activeTab === 'places'
+                  {activeTab === 'country'
+                    ? 'Discover photography, facts, weather, and places for any nation'
+                    : activeTab === 'places'
                     ? 'Discover breathtaking destinations worldwide'
                     : 'Get authentic insider tips from real travelers'}
                 </p>
               </div>
 
               {/* Segmented Mode Tabs */}
-              <div className="grid grid-cols-2 gap-1 p-1 bg-black/30 rounded-2xl border border-white/10 text-xs font-semibold">
+              <div className="grid grid-cols-3 gap-1 p-1 bg-black/30 rounded-2xl border border-white/10 text-xs font-semibold">
                 <button
-                  onClick={() => setActiveTab('places')}
+                  onClick={() => {
+                    setActiveTab('country');
+                    if (destinationQuery === 'Kyoto, Japan') setDestinationQuery('Japan');
+                  }}
                   className={cn(
-                    'py-2 px-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer',
+                    'py-2 px-1 rounded-xl flex items-center justify-center gap-1 transition-all cursor-pointer text-[11px]',
+                    activeTab === 'country'
+                      ? 'bg-white/20 text-teal-300 shadow-xs font-bold border border-white/10'
+                      : 'text-slate-300 hover:text-white'
+                  )}
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>Country</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('places');
+                    if (destinationQuery === 'Japan') setDestinationQuery('Kyoto');
+                  }}
+                  className={cn(
+                    'py-2 px-1 rounded-xl flex items-center justify-center gap-1 transition-all cursor-pointer text-[11px]',
                     activeTab === 'places'
                       ? 'bg-white/20 text-teal-300 shadow-xs font-bold border border-white/10'
                       : 'text-slate-300 hover:text-white'
                   )}
                 >
                   <Compass className="w-3.5 h-3.5" />
-                  <span>Find Places</span>
+                  <span>Places</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('advice')}
                   className={cn(
-                    'py-2 px-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer',
+                    'py-2 px-1 rounded-xl flex items-center justify-center gap-1 transition-all cursor-pointer text-[11px]',
                     activeTab === 'advice'
                       ? 'bg-white/20 text-teal-300 shadow-xs font-bold border border-white/10'
                       : 'text-slate-300 hover:text-white'
                   )}
                 >
                   <Lightbulb className="w-3.5 h-3.5" />
-                  <span>Get Advice</span>
+                  <span>Advice</span>
                 </button>
               </div>
 
@@ -233,7 +261,11 @@ export const HeroSection: React.FC = () => {
                 {/* Destination Input */}
                 <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
                   <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 block">
-                    {activeTab === 'advice' ? 'Destination for Advice' : 'Where to?'}
+                    {activeTab === 'country'
+                      ? 'Search Any Country...'
+                      : activeTab === 'advice'
+                      ? 'Destination for Advice'
+                      : 'Where to?'}
                   </span>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="w-2 h-2 rounded-full bg-teal-400 shrink-0" />
@@ -241,11 +273,44 @@ export const HeroSection: React.FC = () => {
                       type="text"
                       value={destinationQuery}
                       onChange={(e) => setDestinationQuery(e.target.value)}
-                      placeholder="e.g. Kyoto, Santorini, Banff..."
+                      placeholder={
+                        activeTab === 'country'
+                          ? 'e.g. Japan, Sri Lanka, Italy, Canada, Greece...'
+                          : 'e.g. Kyoto, Santorini, Banff...'
+                      }
                       className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none placeholder:opacity-50"
                     />
                   </div>
                 </div>
+
+                {/* Quick Country Suggestion Chips */}
+                {activeTab === 'country' && (
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-slate-400 font-semibold block">Quick Search:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { label: 'Japan 🇯🇵', q: 'Japan' },
+                        { label: 'Sri Lanka 🇱🇰', q: 'Sri Lanka' },
+                        { label: 'Italy 🇮🇹', q: 'Italy' },
+                        { label: 'Greece 🇬🇷', q: 'Greece' },
+                        { label: 'Switzerland 🇨🇭', q: 'Switzerland' },
+                        { label: 'Canada 🇨🇦', q: 'Canada' },
+                      ].map((item) => (
+                        <button
+                          key={item.q}
+                          type="button"
+                          onClick={() => {
+                            setDestinationQuery(item.q);
+                            navigate(`/country/${encodeURIComponent(item.q.toLowerCase())}`);
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold text-slate-200 hover:text-white transition-all cursor-pointer border border-white/10"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Tab Specific Inputs */}
                 {activeTab === 'places' && (
@@ -312,7 +377,11 @@ export const HeroSection: React.FC = () => {
                   className="w-full py-3.5 rounded-2xl bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-teal-500/25 transition-all hover:scale-[1.02] cursor-pointer mt-2"
                 >
                   <span>
-                    {activeTab === 'places' ? 'Explore Destinations' : 'Browse Insider Advice'}
+                    {activeTab === 'country'
+                      ? 'Explore Country Page'
+                      : activeTab === 'places'
+                      ? 'Explore Destinations'
+                      : 'Browse Insider Advice'}
                   </span>
                   <ArrowRight className="w-4 h-4" />
                 </button>

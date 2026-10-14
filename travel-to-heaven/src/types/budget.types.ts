@@ -2,6 +2,8 @@ export type BudgetCategory =
   | 'ACCOMMODATION'
   | 'TRANSPORTATION'
   | 'FOOD'
+  | 'ENTRANCE_FEES'
+  | 'CAMPING'
   | 'ACTIVITIES'
   | 'SHOPPING'
   | 'FLIGHTS'

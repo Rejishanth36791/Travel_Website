@@ -47,6 +47,11 @@ export interface Destination {
   culturalImportance?: string;
   naturalBeauty?: string;
   bestTimeToVisit?: string;
+  openingHours?: string;
+  entranceFee?: string;
+  suggestedDuration?: string;
+  visitingGuidelines?: string;
+  accessibilityInfo?: string;
   language?: string;
   currency?: string;
   timeZone?: string;

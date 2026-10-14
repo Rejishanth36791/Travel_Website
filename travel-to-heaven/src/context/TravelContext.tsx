@@ -71,6 +71,9 @@ interface TravelContextType {
   createTrip: (trip: Omit<Trip, 'id' | 'createdAt' | 'days'>) => Trip;
   updateTrip: (id: string, updates: Partial<Trip>) => void;
   deleteTrip: (id: string) => void;
+  addDestinationToTrip: (tripId: string, destination: Destination) => void;
+  removeDestinationFromTrip: (tripId: string, destinationId: string) => void;
+  reorderTripDestinations: (tripId: string, newOrder: Destination[]) => void;
   addItineraryItem: (tripId: string, dayId: string, item: Omit<ItineraryItem, 'id' | 'dayId' | 'order'>) => void;
   updateItineraryItem: (tripId: string, dayId: string, itemId: string, updates: Partial<ItineraryItem>) => void;
   deleteItineraryItem: (tripId: string, dayId: string, itemId: string) => void;
@@ -510,6 +513,50 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setTrips((prev) => prev.filter((t) => t.id !== id));
   };
 
+  const addDestinationToTrip = (tripId: string, destination: Destination) => {
+    setTrips((prev) =>
+      prev.map((t) => {
+        if (t.id === tripId) {
+          const currentList = t.destinationsList || (t.destination ? [t.destination] : []);
+          if (currentList.some((d) => d.id === destination.id)) return t;
+          return {
+            ...t,
+            destinationsList: [...currentList, destination],
+          };
+        }
+        return t;
+      })
+    );
+  };
+
+  const removeDestinationFromTrip = (tripId: string, destinationId: string) => {
+    setTrips((prev) =>
+      prev.map((t) => {
+        if (t.id === tripId && t.destinationsList) {
+          return {
+            ...t,
+            destinationsList: t.destinationsList.filter((d) => d.id !== destinationId),
+          };
+        }
+        return t;
+      })
+    );
+  };
+
+  const reorderTripDestinations = (tripId: string, newOrder: Destination[]) => {
+    setTrips((prev) =>
+      prev.map((t) => {
+        if (t.id === tripId) {
+          return {
+            ...t,
+            destinationsList: newOrder,
+          };
+        }
+        return t;
+      })
+    );
+  };
+
   const addItineraryItem = (tripId: string, dayId: string, itemData: Omit<ItineraryItem, 'id' | 'dayId' | 'order'>) => {
     setTrips((prev) =>
       prev.map((trip) => {
@@ -672,6 +719,9 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         createTrip,
         updateTrip,
         deleteTrip,
+        addDestinationToTrip,
+        removeDestinationFromTrip,
+        reorderTripDestinations,
         addItineraryItem,
         updateItineraryItem,
         deleteItineraryItem,
